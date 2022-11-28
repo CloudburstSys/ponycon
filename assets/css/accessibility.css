@@ -1,0 +1,23 @@
+*:focus-visible {
+    outline: 2px solid rgba(255, 255, 0, 0.5) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
+
+.a11y-skip {
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.a11y-skip:focus, .a11y-skip:focus-visible, .a11y-skip:focus-within, .a11y-skip:hover, .a11y-skip:active {
+    width: max-content !important;
+    height: max-content !important;
+    pointer-events: initial !important;
+    opacity: 1 !important;
+}

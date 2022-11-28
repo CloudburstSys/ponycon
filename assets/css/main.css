@@ -1,0 +1,198 @@
+details[open] {
+    background-color: #f8f9fa !important;
+}
+
+details[open] > summary:hover {
+    background-color: #f2f4f5 !important;
+}
+
+details[open] > summary:active {
+    background-color: #edeff0 !important;
+}
+
+details[open] > summary > img, details[open] > summary > .intro-countdown {
+    display: none;
+}
+
+details[open] > summary > .name {
+    margin-left: 0 !important;
+    font-weight: bold;
+}
+
+.btn-with-icon:hover img {
+    filter: none;
+    transition: filter 200ms;
+}
+
+.btn-with-icon:hover img {
+    filter: brightness(2000%);
+}
+
+.convention {
+    padding: 0;
+}
+
+.convention > summary {
+    user-select: none;
+    list-style: none;
+    padding: var(--bs-list-group-item-padding-y) var(--bs-list-group-item-padding-x);
+}
+
+.countdown {
+    margin-top: 3px;
+    font-weight: bold;
+}
+
+.intro-countdown {
+    float: right;
+}
+
+.convention-details {
+    grid-column-gap: 20px;
+    border-radius: var(--bs-list-group-border-radius);
+    display: grid;
+    grid-template-columns:96px 1fr;
+    margin: var(--bs-list-group-item-padding-y) var(--bs-list-group-item-padding-x);
+}
+
+.details-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.details-icon-img {
+    border-radius: 5px;
+    width: 96px;
+    height: 96px;
+    vertical-align: middle;
+}
+
+.details-points {
+    margin-bottom: .5rem;
+}
+
+.convention-icon {
+    border-radius: 5px;
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+}
+
+.convention-location {
+    vertical-align: middle;
+}
+
+.name {
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+.main-box {
+    background: white;
+    padding: 20px 0;
+}
+
+.app {
+    background: rgba(0, 0, 0, .05);
+}
+
+footer {
+    border-top: 1px solid rgba(0, 0, 0, .25);
+    padding: 10px 0;
+}
+
+.social-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.nav-logo {
+    width: 32px;
+}
+
+.website-icon {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .convention-details {
+        grid-template-columns: 1fr !important;
+    }
+
+    .details-info {
+        margin-top: 20px;
+    }
+
+    .countdown-container {
+        text-align: center;
+    }
+
+    .links {
+        margin: 0 auto;
+        display: block;
+        width: max-content;
+    }
+
+    .website-icon {
+        display: inline !important;
+    }
+
+    .website-label {
+        display: none;
+    }
+
+    .mobile-convention-block {
+        display: block;
+    }
+
+    .name {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        width: calc(100% - 42px);
+        display: inline-block;
+    }
+}
+
+.details-description {
+    margin-bottom: 10px;
+}
+
+.theme-switcher {
+    align-items: center;
+    display: flex;
+    margin-top: -5px;
+    margin-left: auto;
+}
+
+.theme-switcher > a {
+    transition: opacity 200ms;
+}
+
+.theme-switcher > a:hover {
+    cursor: pointer;
+    opacity: .75;
+}
+
+.navbar-nav {
+    width: 100%;
+}
+
+.theme-switcher > a, .theme-switcher > a > img {
+    vertical-align: middle;
+    display: inline-block;
+}
+
+* {
+    transition: color 200ms, border-color 200ms, background-color 200ms, filter 200ms;
+}
+
+.countdown-item, .countdown-item * {
+    color: black !important;
+}
+
+.countdown-item code {
+    font-size: 1.05em;
+    font-weight: 600;
+}

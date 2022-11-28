@@ -1,0 +1,64 @@
+.app {
+    background-color: rgb(10, 10, 10);
+}
+
+nav.navbar {
+    background-color: rgb(10, 10, 10) !important;
+}
+
+nav, nav * {
+    color: white !important;
+    transition: opacity 200ms;
+}
+
+.nav-item:hover {
+    opacity: .75;
+}
+
+.main-box {
+    background-color: rgb(30, 30, 30);
+}
+
+.convention > summary {
+    color: white !important;
+    background-color: rgb(35, 35, 35);
+}
+
+.convention {
+    border-color: rgba(60, 60, 60) !important;
+    background-color: rgb(40, 40, 40) !important;
+}
+
+.convention[open] {
+    background-color: rgb(40, 40, 40) !important;
+}
+
+.convention > summary:hover {
+    background-color: rgb(40, 40, 40);
+}
+
+.convention[open] > summary:hover {
+    background-color: rgb(45, 45, 45) !important;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.convention-details {
+    border-bottom-right-radius: 0.375rem !important;
+    border-bottom-left-radius: 0.375rem !important;
+    background-color: rgb(45, 45, 45) !important;
+    border-color: rgba(60, 60, 60) !important;
+    color: white;
+}
+
+.btn, .badge, .alert {
+    filter: invert(1) hue-rotate(180deg) !important;
+}
+
+.navbar-toggler {
+    filter: invert(1);
+}
+
+.countdown-item, .countdown-item * {
+    color: white !important;
+}

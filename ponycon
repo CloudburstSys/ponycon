@@ -1,0 +1,9 @@
+#!/bin/bash
+
+x_run () {
+    node index.js
+    x_run
+}
+
+cd dist
+x_run

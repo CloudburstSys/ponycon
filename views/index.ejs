@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PonyCon Countdown</title>
+
+    <meta property="og:site_name" content="PonyCon Countdown">
+    <meta property="og:url" content="https://ponycon.info">
+    <meta property="og:title" content="PonyCon Countdown">
+    <meta property="og:description" content="A list of upcoming Pony conventions, both IRL and online.">
+    <meta property="og:type" content="website">
+    <meta name="og:image" itemprop="image" content="/assets/img/logo.svg">
+    <meta name="theme-color" content="#fff6ad">
+
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/accessibility.css">
+    <link rel="stylesheet" id="dark-theme" href="/assets/css/dark.css">
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/countdown.js"></script>
+    <script src="/assets/js/dark.js"></script>
+    <link rel="shortcut icon" href="/assets/img/logo.svg" type="image/svg">
+</head>
+<body class="app">
+<div>
+    <nav class="navbar navbar-expand-sm navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/" tabindex="0">
+                <img src="/assets/img/logo.svg" alt="Logo" class="rounded-pill nav-logo">
+                PonyCon Countdown
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item a11y-skip">
+                        <a class="nav-link" href="#list" tabindex="0">Skip to main content</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://status.equestria.dev" tabindex="0">Status</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://twitter.com/Con_Countdown" tabindex="0">Twitter</a>
+                    </li>
+                    <li class="nav-item">
+                        <a rel="me" class="nav-link" target="_blank" href="https://pony.social/@coninfo" tabindex="0">Mastodon</a>
+                    </li>
+                    <li class="nav-item theme-switcher">
+                        <a onclick="switchTheme();" tabindex="0">
+                            <img alt="Theme" id="theme-switcher-img" src="/assets/img/dark.svg">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<main class="main-box">
+    <div class="container">
+        <div class="alert alert-info">
+            All dates are shown in your local timezone (<span id="timezone-name"></span>).
+            <script>
+                document.getElementById("timezone-name").innerText = new Date().toTimeString().split("(")[1].split(")")[0];
+            </script>
+        </div>
+        <div class="list-group" id="list">
+            <% events.forEach(event => { %>
+            <details class="list-group-item list-group-item-action convention">
+                <summary tabindex="0">
+                    <img src="<%= event.icon %>" alt="Convention icon" class="convention-icon">
+                    <span class="name">
+                        <%= event.name %>
+                    </span>
+                    <span class="mobile-convention-block">
+                        <% if (event.environment !== 0) { %>
+                        <span title="<%= ["This event is exclusively virtual, with no way to attend IRL.",
+                                          "This event is exclusively IRL, with no way to attend virtually.",
+                                          "This event is mainly IRL, but is streaming some content online."][event.environment-1] %>" data-bs-toggle="tooltip" class="badge bg-primary rounded-pill convention-location">
+                            <%= ["Online", "IRL", "IRL & online"][event.environment-1] %>
+                        </span>
+                        <% } %>
+                        <% if (event.type !== 0) { %>
+                            <span title="<%= ["This event is a full on convention with vendors, panels, and (potentially) concerts.",
+                                              "This event is a concert only, with likely no vendors.",
+                                              "This event is an album release, with no vendors or live DJ sets."][event.type-1] %>" data-bs-toggle="tooltip" class="badge bg-secondary rounded-pill convention-location">
+                            <%= ["Convention", "Concert", "Album release"][event.type-1]; %>
+                        </span>
+                        <% } %>
+                        <span class="intro-countdown countdown" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></span>
+                    </span>
+                </summary>
+
+                <div class="list-group-item convention-details">
+                    <div class="details-icon">
+                        <img src="<%= event.icon %>" alt="Convention icon" class="details-icon-img">
+                    </div>
+                    <div class="details-info">
+                        <h4 class="countdown-container"><b class="countdown" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></b></h4>
+                        <div class="details-points">
+                            <% if (event.summary !== null) { %>
+                            <p class="details-description"><%= event.summary %></p>
+                            <% } %>
+                            <b>Starts:</b> <pc-date><%= event.dates.start.getTime() %></pc-date><br>
+                            <b>Ends:</b> <pc-date><%= event.dates.end.getTime() %></pc-date><br>
+                            <% if (event.location.url !== null && event.location.name !== null) { %>
+                            <b>Location:</b> <a target="_blank" href="<%= event.location.url %>"><%= event.location.name %></a>
+                            <% } %>
+                        </div>
+                        <div class="links">
+                            <div class="btn-group">
+                                <% if (event.website !== null) { %>
+                                <a title="Visit website" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= event.website %>" type="button" class="btn btn-primary">
+                                    <img class="social-icon website-icon" src="/assets/social/website.png" alt="Website">
+                                    <span class="website-label">Website</span>
+                                </a>
+                                <% } %>
+                                <% if (event.ponytown !== 0 &&
+                                       event.dates.start.getTime() <= Date.now() &&
+                                       event.dates.end.getTime() > Date.now()) { %>
+                                <a title="Join Pony Town server" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= ["https://event.pony.town", "https://eventblue.pony.town", "https://eventgreen.pony.town"][event.ponytown-1] %>" type="button" class="btn btn-primary btn-with-icon">
+                                    <img class="social-icon" src="/assets/social/ponytown.png" alt="Pony Town">
+                                </a>
+                                <% } %>
+                                <% for (const social in event.socials) {
+                                        let socialName = {
+                                            discord: "Discord",
+                                            mastodon: "Mastodon",
+                                            twitter: "Twitter",
+                                            youtube: "Youtube",
+                                            instagram: "Instagram",
+                                            facebook: "Facebook"
+                                        }[social];
+
+                                        if (social === "mastodon" && event.socials[social].startsWith("@"))
+                                            event.socials[social] = event.socials[social].split("").splice(1).join("");
+
+                                        let socialLink = {
+                                            discord: "https://discord.gg/",
+                                            mastodon: `https://${event.socials[social].split("@")[1] || "mastodon.social"}/`,
+                                            twitter: "https://twitter.com/",
+                                            youtube: "https://youtube.com/",
+                                            instagram: "https://instagram.com/",
+                                            facebook: "https://facebook.com/"
+                                        }[social] + event.socials[social];
+
+                                        if (social === "mastodon") socialLink = socialLink.replace(event.socials[social], "@" + event.socials[social].split("@")[0]);
+
+                                        if (event.socials[social].startsWith("https://")) socialLink = event.socials[social];
+                                %>
+                                <a title="<%= socialName %>" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= socialLink %>" type="button" class="btn btn-outline-primary btn-with-icon">
+                                    <img class="social-icon" src="/assets/social/<%= social %>.png" alt="Discord">
+                                </a>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            <% }); %>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="container text-muted">
+        © 2022 <a href="https://equestria.horse" class="text-muted">Equestria.dev Developers</a>
+    </div>
+</footer>
+
+<script>
+    if (darkThemeDefault) {
+        switchTheme();
+    }
+</script>
+<script src="/assets/js/tooltips.js"></script>
+</body>
+</html>
