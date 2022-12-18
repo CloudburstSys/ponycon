@@ -8,6 +8,7 @@ export default class Event {
     public environment: EventEnvironment = EventEnvironment.None;
     public location: EventLocation = { name: null, url: null };
     public dates: EventDates = { start: null, end: null };
+    public breaks: EventBreak[] = [];
     public socials: EventSocials = {};
     public website: string = null
     public ponytown: EventPonytown = EventPonytown.None;
@@ -54,11 +55,21 @@ export interface EventDates {
     end: Date
 }
 
+export interface EventBreak {
+    start: Date,
+    end: Date
+}
+
 export interface EventSocials {
-    discord?: string,
-    mastodon?: string,
-    twitter?: string,
-    youtube?: string,
-    instagram?: string,
-    facebook?: string
+    discord?: EventSocial,
+    mastodon?: EventSocial,
+    twitter?: EventSocial,
+    youtube?: EventSocial,
+    twitch?: EventSocial,
+    facebook?: EventSocial
+}
+
+export interface EventSocial {
+    url: string,
+    live: boolean
 }

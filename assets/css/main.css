@@ -19,13 +19,17 @@ details[open] > summary > .name {
     font-weight: bold;
 }
 
-.btn-with-icon:hover img {
-    filter: none;
-    transition: filter 200ms;
+.btn-with-icon .social-icon-highlight {
+    filter: hue-rotate(127deg);
+}
+
+.btn-with-icon.btn-outline-danger {
+    z-index: 99;
 }
 
 .btn-with-icon:hover img {
     filter: brightness(2000%);
+    transition: filter 200ms;
 }
 
 .convention {

@@ -6,12 +6,19 @@
     <title>PonyCon Countdown</title>
 
     <meta property="og:site_name" content="PonyCon Countdown">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#fff6ad">
+    <% if (shared !== null) { %>
+    <meta property="og:url" content="https://ponycon.info/<%= shared.id %>">
+    <meta property="og:title" content="<%= shared.name %>">
+    <meta property="og:description" content="<%= shared.summary ?? "No summary provided." %>">
+    <meta property="og:image" itemprop="image" content="<%= shared.icon %>">
+    <% } else { %>
     <meta property="og:url" content="https://ponycon.info">
     <meta property="og:title" content="PonyCon Countdown">
     <meta property="og:description" content="A list of upcoming Pony conventions, both IRL and online.">
-    <meta property="og:type" content="website">
     <meta name="og:image" itemprop="image" content="/assets/img/logo.svg">
-    <meta name="theme-color" content="#fff6ad">
+    <% } %>
 
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/main.css">
@@ -21,6 +28,11 @@
     <script src="/assets/js/countdown.js"></script>
     <script src="/assets/js/dark.js"></script>
     <link rel="shortcut icon" href="/assets/img/logo.svg" type="image/svg">
+
+    <script>
+        // Make some data available to the whole website.
+        const eventBreaks = {};
+    </script>
 </head>
 <body class="app">
 <div>
@@ -68,7 +80,7 @@
         </div>
         <div class="list-group" id="list">
             <% events.forEach(event => { %>
-            <details class="list-group-item list-group-item-action convention">
+            <details class="list-group-item list-group-item-action convention" id="convention-<%= event.id %>">
                 <summary tabindex="0">
                     <img src="<%= event.icon %>" alt="Convention icon" class="convention-icon">
                     <span class="name">
@@ -89,7 +101,7 @@
                             <%= ["Convention", "Concert", "Album release"][event.type-1]; %>
                         </span>
                         <% } %>
-                        <span class="intro-countdown countdown" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></span>
+                        <span class="intro-countdown countdown" data-countdown-id="<%= event.id %>" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></span>
                     </span>
                 </summary>
 
@@ -98,7 +110,7 @@
                         <img src="<%= event.icon %>" alt="Convention icon" class="details-icon-img">
                     </div>
                     <div class="details-info">
-                        <h4 class="countdown-container"><b class="countdown" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></b></h4>
+                        <h4 class="countdown-container"><b class="countdown" data-countdown-id="<%= event.id %>" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></b></h4>
                         <div class="details-points">
                             <% if (event.summary !== null) { %>
                             <p class="details-description"><%= event.summary %></p>
@@ -130,34 +142,44 @@
                                             mastodon: "Mastodon",
                                             twitter: "Twitter",
                                             youtube: "Youtube",
-                                            instagram: "Instagram",
+                                            twitch: "Twitch",
                                             facebook: "Facebook"
                                         }[social];
 
-                                        if (social === "mastodon" && event.socials[social].startsWith("@"))
-                                            event.socials[social] = event.socials[social].split("").splice(1).join("");
+                                        if (social === "mastodon" && event.socials[social].url.startsWith("@"))
+                                            event.socials[social] = event.socials[social].url.split("").splice(1).join("");
 
                                         let socialLink = {
                                             discord: "https://discord.gg/",
-                                            mastodon: `https://${event.socials[social].split("@")[1] || "mastodon.social"}/`,
+                                            mastodon: `https://${event.socials[social].url.split("@")[1] || "mastodon.social"}/`,
                                             twitter: "https://twitter.com/",
                                             youtube: "https://youtube.com/",
-                                            instagram: "https://instagram.com/",
+                                            twitch: "https://twitch.tv/",
                                             facebook: "https://facebook.com/"
-                                        }[social] + event.socials[social];
+                                        }[social] + event.socials[social].url;
 
-                                        if (social === "mastodon") socialLink = socialLink.replace(event.socials[social], "@" + event.socials[social].split("@")[0]);
+                                        if (social === "mastodon") socialLink = socialLink.replace(event.socials[social].url, "@" + event.socials[social].url.split("@")[0]);
 
-                                        if (event.socials[social].startsWith("https://")) socialLink = event.socials[social];
+                                        if (event.socials[social].url.startsWith("https://")) socialLink = event.socials[social].url;
                                 %>
-                                <a title="<%= socialName %>" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= socialLink %>" type="button" class="btn btn-outline-primary btn-with-icon">
-                                    <img class="social-icon" src="/assets/social/<%= social %>.png" alt="Discord">
+                                <a title="<%= socialName %>" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= socialLink %>" type="button" class="btn <%= event.socials[social].live && (event.dates.start.getTime() <= new Date().getTime() && new Date().getTime() < event.dates.end.getTime()) ? "btn-outline-danger" : "btn-outline-primary" %> btn-with-icon">
+                                    <img class="social-icon<%= event.socials[social].live && (event.dates.start.getTime() <= new Date().getTime() && new Date().getTime() < event.dates.end.getTime()) ? " social-icon-highlight" : "" %>" src="/assets/social/<%= social %>.png" alt="<%= socialName %>">
                                 </a>
                                 <% } %>
                             </div>
                         </div>
                     </div>
                 </div>
+                <script>
+                    // This code just loads data corresponding to event breaks from the backend to the frontend.
+                    // This is so that countdown.js can understand what an event break is and where they are.
+                    eventBreaks["<%= event.id %>"] = [];
+                    <% event.breaks.forEach(eventBreak => {%>
+                    eventBreaks["<%= event.id %>"].push({
+                        "start": "<%= eventBreak.start.getTime() %>",
+                        "end": "<%= eventBreak.end.getTime() %>"
+                    });<% }); %>
+                </script>
             </details>
             <% }); %>
         </div>
@@ -174,6 +196,15 @@
     if (darkThemeDefault) {
         switchTheme();
     }
+
+    <% if(shared !== null) { %>
+    // Auto-open event based on location.hash
+    let toOpen = document.getElementById("convention-<%= shared.id %>");
+    console.log(toOpen);
+    if(toOpen !== null) {
+        toOpen.open = true;
+    }
+    <% } %>
 </script>
 <script src="/assets/js/tooltips.js"></script>
 </body>

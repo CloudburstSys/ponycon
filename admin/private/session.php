@@ -55,11 +55,33 @@ if (isset($array["event"])) {
                 "start" => strtotime($event["start"] ?? "0") === 0 ? null : strtotime($event["start"] ?? "0"),
                 "end" => strtotime($event["end"] ?? "0") === 0 ? null : strtotime($event["end"] ?? "0"),
             ],
+            "break" => [],
             "socials" => []
         ];
 
+        if (isset($event["break"])) {
+            if (array_values($event["break"]) === $event["break"]) {
+                // Multiple breaks.
+                foreach ($event["break"] as $index => $break) {
+                    $list[$event["@attributes"]["id"]]["break"][] = [
+                        "start" => strtotime($break["start"] ?? "0") === 0 ? null : strtotime($break["start"] ?? "0"),
+                        "end" => strtotime($break["end"] ?? "0") === 0 ? null : strtotime($break["end"] ?? "0")
+                    ];
+                }
+            } else {
+                // Single break.
+                $list[$event["@attributes"]["id"]]["break"][] = [
+                    "start" => strtotime($event["break"]["start"] ?? "0") === 0 ? null : strtotime($event["break"]["start"] ?? "0"),
+                    "end" => strtotime($event["break"]["end"] ?? "0") === 0 ? null : strtotime($event["break"]["end"] ?? "0")
+                ];
+            }
+        }
+
         foreach ($event["socials"] as $name => $value) {
-            $list[$event["@attributes"]["id"]]["socials"][$name] = trim($value);
+            $list[$event["@attributes"]["id"]]["socials"][$name] = [
+                "url" => trim($value["url"]),
+                "live" => trim($value["live"]) === "true"
+            ];
         }
     }
 }
@@ -80,9 +102,25 @@ function export_list() {
 
         if (isset($event["date"]["start"])) $str .= "        <start>" . date("c", $event["date"]["start"]) . "</start>\n";
         if (isset($event["date"]["end"])) $str .= "        <end>" . date("c", $event["date"]["end"]) . "</end>\n";
-
+        if (isset($event["break"])) {
+            if (array_values($event["break"]) === $event["break"]) {
+                // multiple
+                foreach ($event["break"] as $index => $break) {
+                    $str .= "        <break>\n";
+                    $str .= "            <start>" . date("c", $break["start"]) . "</start>\n";
+                    $str .= "            <end>" . date("c", $break["end"]) . "</end>\n";
+                    $str .= "        </break>\n";
+                }
+            } else {
+                // single
+                $str .= "        <break>\n";
+                $str .= "            <start>" . date("c", $event["break"]["start"]) . "</start>\n";
+                $str .= "            <end>" . date("c", $event["break"]["end"]) . "</end>\n";
+                $str .= "        </break>\n";
+            }
+        }
         if (isset($event["location"])) {
-            $str .= "        <location>";
+            $str .= "        <location>\n";
 
             $str .= "            <url>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["url"])) . "</url>\n";
             $str .= "            <name>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["name"])) . "</name>\n";
@@ -94,7 +132,8 @@ function export_list() {
 
         foreach ($event["socials"] as $platform => $social) {
             $str .= "            <" . str_replace("<", "-", str_replace(">", "-", $platform)) . ">\n";
-            $str .= "                " . $social . "\n";
+            $str .= "                <url>" . $social["url"] . "</url>\n";
+            $str .= "                <live>" . ($social["live"] ? "true" : "false") . "</live>\n";
             $str .= "            </" . str_replace("<", "-", str_replace(">", "-", $platform)) . ">\n";
         }
 

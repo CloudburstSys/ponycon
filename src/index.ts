@@ -19,7 +19,28 @@ app.get("/", (req, res) => {
     res.render("index", {
         events:
             events.sort((a, b) =>
-            a.dates.start.getTime() - b.dates.start.getTime())
+            a.dates.start.getTime() - b.dates.start.getTime()),
+        shared: null
+    });
+});
+
+app.get("/:id", (req, res) => {
+    var events = [];
+
+    eventHandler.events.forEach(event => {
+        let eevent: any = event;
+        eevent.icon = event.iconURL;
+        events.push(eevent);
+    });
+
+    if (!events.map(event => event.id).includes(req.params.id)) return res.redirect("/");
+    let event = events.find(event => event.id == req.params.id);
+
+    res.render("index", {
+        events:
+            events.sort((a, b) =>
+                a.dates.start.getTime() - b.dates.start.getTime()),
+        shared: event
     });
 });
 

@@ -229,7 +229,11 @@
 
                                 period = periods[j];
 
-                                return `in ${difference} ${period}${difference > 1 ? "s" : ""}`;
+                                if(time - now < 0) {
+                                    return `${difference} ${period}${difference > 1 ? "s" : ""} ago`;
+                                } else {
+                                    return `in ${difference} ${period}${difference > 1 ? "s" : ""}`;
+                                }
                             }
 
                             function duration(start, end) {
@@ -287,6 +291,119 @@
                 <tr>
                     <td style="width: 15%; font-weight: bold; text-align: right; padding-right: 10px;">
                         <div style="height: 100%; display: flex; align-items: center; justify-content: right;">
+                            Breaks:
+                        </div>
+                    </td>
+                    <td>
+                        <table style="width:100%;" id="breaksContainer">
+                            <?php if(isset($_GET["i"])): ?>
+                            <?php
+                            if(isset($event["break"])):
+                                $breaks = $event["break"];
+                                uasort($breaks, function ($a, $b) {
+                                    return $a["start"] - $b["start"];
+                                });
+                                foreach ($breaks as $index => $break):
+                                    ?>
+                                    <tr id="break<?= $index ?>">
+                                        <td>
+                                            <label>
+                                                Start:
+                                                <input class="form-control" type="datetime-local" name="break[<?= $index ?>][start]" id="break<?= $index ?>-date1" required value="<?= substr(date("c", $break["start"]), 0, 16) ?>">
+                                            </label>
+                                            <label>
+                                                End:
+                                                <input class="form-control" type="datetime-local" name="break[<?= $index ?>][end]" id="break<?= $index ?>-date2" required value="<?= substr(date("c", $break["end"]), 0, 16) ?>">
+                                            </label>
+                                            Starts <span id="break<?= $index ?>-start">-</span>, for <span id="break<?= $index ?>-duration">-</span>
+                                            <button type="button" class="btn btn-outline-danger" id="break<?= $index ?>-delete" onclick="deleteBreak(this)" style="float: right;">Delete</button>
+                                        </td>
+                                    </tr>
+                                    <tr id="break<?= $index ?>-sep">
+                                        <td colspan="2"><hr></td>
+                                    </tr>
+                                <?php endforeach; endif; ?>
+                            <?php endif; ?>
+                            <script>
+                                let breakCount = <?= isset($breaks) ? count($breaks) : 0 ?>;
+
+                                // script to handle deleting of breaks
+                                function deleteBreak(element) {
+                                    let breakId = element.id.split("-")[0];
+
+                                    let breakEntry = document.getElementById(breakId);
+                                    let breakEntrySep = document.getElementById(breakId + "-sep");
+
+                                    breakEntry.parentNode.removeChild(breakEntry);
+                                    breakEntrySep.parentNode.removeChild(breakEntrySep);
+                                }
+
+                                // script to handle the start and duration info for each one
+                                function updateBreakDates(id) {
+                                    if (document.getElementById(id + "-date1").value === "" || document.getElementById(id + "-date2").value === "") {
+                                        document.getElementById(id + "-start").innerText = "";
+                                        document.getElementById(id + "-duration").innerText = "";
+                                        return;
+                                    }
+
+                                    document.getElementById(id + "-start").innerText = timeAgo(new Date(document.getElementById(id + "-date1").value));
+                                    document.getElementById(id + "-duration").innerText = duration(new Date(document.getElementById(id + "-date2").value), new Date(document.getElementById(id + "-date1").value));
+                                }
+
+                                function updateBreakTimes() {
+                                    document.getElementById("breaksContainer").lastChild.childNodes.forEach(child => {
+                                        if (/^break(\d+)$/g.test(child.id)) {
+                                            updateBreakDates(child.id);
+
+                                            document.getElementById(`${child.id}-date1`).onchange = () => updateBreakDates(child.id);
+                                            document.getElementById(`${child.id}-date2`).onchange = () => updateBreakDates(child.id);
+                                        }
+                                    });
+                                }
+
+                                updateBreakTimes();
+
+                                // script to handle creating breaks
+                                function createBreak() {
+                                    let elementsToAdd = `
+                                    <tr id="break${breakCount}">
+                                        <td>
+                                            <label>
+                                                Start:
+                                                <input class="form-control" type="datetime-local" name="break[${breakCount}][start]" id="break${breakCount}-date1" required>
+                                            </label>
+                                            <label>
+                                                End:
+                                                <input class="form-control" type="datetime-local" name="break[${breakCount}][end]" id="break${breakCount}-date2" required>
+                                            </label>
+                                            Starts <span id="break${breakCount}-start">-</span>, for <span id="break${breakCount}-duration">-</span>
+                                            <button type="button" class="btn btn-outline-danger" id="break${breakCount}-delete" onclick="deleteBreak(this)" style="float: right;">Delete</button>
+                                        </td>
+                                    </tr>
+                                    <tr id="break${breakCount}-sep">
+                                        <td colspace="2"><hr></td>
+                                    </tr>`;
+
+                                    breakCount++;
+
+                                    document.getElementById("breakAddButton").insertAdjacentHTML('beforebegin', elementsToAdd);
+                                    updateBreakTimes();
+                                }
+                            </script>
+                            <tr id="breakAddButton">
+                                <td>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="createBreak()" style="width:100%;">Add new break</button>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
+                <tr>
+                    <td style="width: 15%; font-weight: bold; text-align: right; padding-right: 10px;">
+                        <div style="height: 100%; display: flex; align-items: center; justify-content: right;">
                             Website:
                         </div>
                     </td>
@@ -306,7 +423,7 @@
                     <td>
                         <select name="ponytown" required class="form-select">
                             <option value="none" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) ? "" : "selected") : "" ?>>[None]</option>
-                            <option value="event" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) && $event["ponytown"] === "main" ? "selected" : "") : "" ?>>event.pony.town</option>
+                            <option value="main" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) && $event["ponytown"] === "main" ? "selected" : "") : "" ?>>event.pony.town</option>
                             <option value="blue" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) && $event["ponytown"] === "blue" ? "selected" : "") : "" ?>>eventblue.pony.town</option>
                             <option value="green" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) && $event["ponytown"] === "green" ? "selected" : "") : "" ?>>eventgreen.pony.town</option>
                         </select>
@@ -325,27 +442,63 @@
                         <table style="width:100%;">
                             <tr>
                                 <td style="text-align: right; padding-right: 10px; width: 15%;">Discord:</td>
-                                <td><input class="form-control" type="text" name="socials[discord]" value="<?= isset($_GET["i"]) ? ($event["socials"]["discord"] ?? "") : "" ?>"></td>
+                                <td><input class="form-control" type="text" name="socials[discord][url]" value="<?= isset($_GET["i"]) ? (isset($event["socials"]["discord"]) ? $event["socials"]["discord"]["url"] : "") : "" ?>"></td>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" name="socials[discord][live]" <?= isset($_GET["i"]) && isset($event["socials"]["discord"]) && $event["socials"]["discord"]["live"] ? "checked" : "" ?>>
+                                        Live
+                                    </label>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="text-align: right; padding-right: 10px; width: 15%;">Mastodon:</td>
-                                <td><input class="form-control" type="text" name="socials[mastodon]" value="<?= isset($_GET["i"]) ? ($event["socials"]["mastodon"] ?? "") : "" ?>"></td>
+                                <td><input class="form-control" type="text" name="socials[mastodon][url]" value="<?= isset($_GET["i"]) ? (isset($event["socials"]["mastodon"]) ? $event["socials"]["mastodon"]["url"] : "") : "" ?>"></td>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" name="socials[mastodon][live]" <?= isset($_GET["i"]) && isset($event["socials"]["mastodon"]) && $event["socials"]["mastodon"]["live"] ? "checked" : "" ?>>
+                                        Live
+                                    </label>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="text-align: right; padding-right: 10px; width: 15%;">Twitter:</td>
-                                <td><input class="form-control" type="text" name="socials[twitter]" value="<?= isset($_GET["i"]) ? ($event["socials"]["twitter"] ?? "") : "" ?>"></td>
+                                <td><input class="form-control" type="text" name="socials[twitter][url]" value="<?= isset($_GET["i"]) ? (isset($event["socials"]["twitter"]) ? $event["socials"]["twitter"]["url"] : "") : "" ?>"></td>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" name="socials[twitter][live]" <?= isset($_GET["i"]) && isset($event["socials"]["twitter"]) && $event["socials"]["twitter"]["live"] ? "checked" : "" ?>>
+                                        Live
+                                    </label>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="text-align: right; padding-right: 10px; width: 15%;">YouTube:</td>
-                                <td><input class="form-control" type="text" name="socials[youtube]" value="<?= isset($_GET["i"]) ? ($event["socials"]["youtube"] ?? "") : "" ?>"></td>
+                                <td><input class="form-control" type="text" name="socials[youtube][url]" value="<?= isset($_GET["i"]) ? (isset($event["socials"]["youtube"]) ? $event["socials"]["youtube"]["url"] : "") : "" ?>"></td>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" name="socials[youtube][live]" <?= isset($_GET["i"]) && isset($event["socials"]["youtube"]) && $event["socials"]["youtube"]["live"] ? "checked" : "" ?>>
+                                        Live
+                                    </label>
+                                </td>
                             </tr>
                             <tr>
-                                <td style="text-align: right; padding-right: 10px; width: 15%;">Instagram:</td>
-                                <td><input class="form-control" type="text" name="socials[instagram]" value="<?= isset($_GET["i"]) ? ($event["socials"]["instagram"] ?? "") : "" ?>"></td>
+                                <td style="text-align: right; padding-right: 10px; width: 15%;">Twitch:</td>
+                                <td><input class="form-control" type="text" name="socials[twitch][url]" value="<?= isset($_GET["i"]) ? (isset($event["socials"]["twitch"]) ? $event["socials"]["twitch"]["url"] : "") : "" ?>"></td>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" name="socials[twitch][live]" <?= isset($_GET["i"]) && isset($event["socials"]["twitch"]) && $event["socials"]["twitch"]["live"] ? "checked" : "" ?>>
+                                        Live
+                                    </label>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="text-align: right; padding-right: 10px; width: 15%;">Facebook:</td>
-                                <td><input class="form-control" type="text" name="socials[facebook]" value="<?= isset($_GET["i"]) ? ($event["socials"]["facebook"] ?? "") : "" ?>"></td>
+                                <td><input class="form-control" type="text" name="socials[facebook][url]" value="<?= isset($_GET["i"]) ? (isset($event["socials"]["facebook"]) ? $event["socials"]["facebook"]["url"] : "") : "" ?>"></td>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" name="socials[facebook][live]" <?= isset($_GET["i"]) && isset($event["socials"]["facebook"]) && $event["socials"]["facebook"]["live"] ? "checked" : "" ?>>
+                                        Live
+                                    </label>
+                                </td>
                             </tr>
                         </table>
                     </td>

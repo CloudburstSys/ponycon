@@ -1,6 +1,6 @@
 import {readFileSync, writeFileSync, watchFile} from "fs";
 import xml from "xml-js";
-import Event, {EventEnvironment, EventPonytown, EventType} from "../Types/Event";
+import Event, {EventBreak, EventEnvironment, EventPonytown, EventType} from "../Types/Event";
 
 export default class XML {
     private supportedSocials: string[] = [
@@ -8,7 +8,7 @@ export default class XML {
         "mastodon",
         "twitter",
         "youtube",
-        "instagram",
+        "twitch",
         "facebook"
     ];
 
@@ -155,16 +155,68 @@ export default class XML {
                         if (element2.elements[0].text === undefined) return;
                         event.dates.end = new Date(element2.elements[0].text.trim());
                         break;
+                    case "break":
+                        // Signifies that the event isn't active, but is still ongoing.
+                        // Contains 2 elements: start and end.
+                        // There can be multiple breaks.
+                        let start: Date = null;
+                        let end: Date = null;
+
+                        element2.elements.forEach(breakElement => {
+                            if(breakElement.elements === undefined) return;
+                            if(breakElement.elements[0].text === undefined) return;
+
+                            switch (breakElement.name) {
+                                case "start":
+                                    start = new Date(breakElement.elements[0].text.trim());
+                                    break;
+                                case "end":
+                                    end = new Date(breakElement.elements[0].text.trim());
+                                    break;
+                                default:
+                                    return;
+                            }
+                        });
+
+                        if (start === null || end === null) return;
+
+                        event.breaks.push({
+                            start, end
+                        });
+                        break;
                     case "socials":
                         if (element2.elements === undefined) return;
 
                         element2.elements.forEach(social => {
-                            if(social.elements === undefined) return;
-                            if(social.elements[0].text === undefined) return;
+                            if (social.elements === undefined) return;
 
-                            if(!this.supportedSocials.includes(social.name)) return;
+                            if (!this.supportedSocials.includes(social.name)) return;
 
-                            event.socials[social.name] = social.elements[0].text.trim();
+                            let url: string = null;
+                            let live: boolean = null;
+
+                            social.elements.forEach(item => {
+                                if (item.elements === undefined) return;
+                                if (item.elements[0].text === undefined) return;
+
+                                switch (item.name) {
+                                    case "url":
+                                        url = item.elements[0].text.trim();
+                                        break;
+                                    case "live":
+                                        live = item.elements[0].text === "true";
+                                        break;
+                                    default:
+                                        return;
+                                }
+                            });
+
+                            if (url === null || live === null) return;
+
+                            event.socials[social.name] = {
+                                url,
+                                live
+                            };
                         });
 
                         break;

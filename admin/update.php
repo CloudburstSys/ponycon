@@ -22,14 +22,34 @@ if ($id === "") $id = uuidv4(openssl_random_pseudo_bytes(16));
 
 $socials = [];
 foreach ($data["socials"] as $name => $social) {
-    if (trim($social) !== "") {
-        $socials[$name] = $social;
+    if (trim($social["url"]) !== "") {
+        $socials[$name] = [
+                "url" => $social["url"],
+                "live" => isset($social["live"])
+        ];
     }
 }
 $data["socials"] = $socials;
 
 $data["date"]["start"] = strtotime($data["date"]["start"] . ":00+00:00");
 $data["date"]["end"] = strtotime($data["date"]["end"] . ":00+00:00");
+
+$breaks = [];
+
+if (isset($data["break"])) {
+    if (count($data["break"]) === 0) {
+        unset($data["break"]);
+    } else {
+        foreach ($data["break"] as $index => $break) {
+            $breaks[] = [
+                "start" => strtotime($break["start"] . ":00+00:00"),
+                "end" => strtotime($break["end"] . ":00+00:00")
+            ];
+        }
+
+        $data["break"] = $breaks;
+    }
+}
 
 if ($data["ponytown"] === "none") unset($data["ponytown"]);
 if (trim($data["website"]) === "") unset($data["website"]);
@@ -72,7 +92,9 @@ file_put_contents($_SERVER["DOCUMENT_ROOT"] . "/../data/events.xml", export_list
     <div class="container">
         <br>
         <p>The operation completed successfully.</p>
-        <a class="btn btn-primary" href="/">Home</a>
+        <a class="btn btn-primary" href="/">Home</a><br/><br/>
+        <p>Funky debug shit</p>
+        <?php var_dump($data); ?>
     </div>
 </body>
 </html>
