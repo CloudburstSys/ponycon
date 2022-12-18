@@ -70,6 +70,29 @@
     </nav>
 </div>
 
+<div class="modal fade" id="share-box">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Share event</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>Use this link to share this event:</p>
+                <input type="text" id="share-box-link" disabled class="form-control" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.shareBox = new bootstrap.Modal(document.getElementById("share-box"));
+    shareBox.setLink = (link) => {
+        document.getElementById("share-box-link").value = link;
+    }
+</script>
+
 <main class="main-box">
     <div class="container">
         <div class="alert alert-info">
@@ -168,6 +191,9 @@
                                 <% } %>
                             </div>
                         </div>
+                        <button type="button" class="btn btn-outline-secondary btn-with-icon" onclick="shareEvent('<%= event.id %>')" style="display: flex; float: right;">
+                            <img class="share-icon" src="/assets/img/share.svg">
+                        </button>
                     </div>
                 </div>
                 <script>
@@ -182,6 +208,12 @@
                 </script>
             </details>
             <% }); %>
+            <script>
+                function shareEvent(id) {
+                    shareBox.setLink("https://ponycon.info/"+id);
+                    shareBox.show();
+                }
+            </script>
         </div>
     </div>
 </main>

@@ -200,3 +200,7 @@ footer {
     font-size: 1.05em;
     font-weight: 600;
 }
+
+.links {
+    display: inline-block;
+}

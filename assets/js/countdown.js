@@ -23,19 +23,21 @@ function _countdown() {
             // Get the nearest break (always the first element);
             let nearestBreak = breakData[0];
 
-            // Check if we're in its bounds.
-            if (nearestBreak.start <= new Date().getTime()) {
-                // We are, display string saying that the event is on break.
-                let diffStart = Math.round((nearestBreak.end - new Date().getTime()) / 1000);
+            if(nearestBreak !== undefined) {
+                // Check if we're in its bounds.
+                if (nearestBreak.start <= new Date().getTime()) {
+                    // We are, display string saying that the event is on break.
+                    let diffStart = Math.round((nearestBreak.end - new Date().getTime()) / 1000);
 
-                let weeks = Math.floor(diffStart / 604800);
-                let days = Math.floor(diffStart / 86400) - (weeks * 7);
-                let hours = Math.floor(diffStart / 3600) - (weeks * 168) - (days * 24);
-                let minutes = Math.floor(diffStart / 60) - (weeks * 10080) - (days * 1440) - (hours * 60);
-                let seconds = diffStart - (weeks * 604800) - (days * 86400) - (hours * 3600) - (minutes * 60);
+                    let weeks = Math.floor(diffStart / 604800);
+                    let days = Math.floor(diffStart / 86400) - (weeks * 7);
+                    let hours = Math.floor(diffStart / 3600) - (weeks * 168) - (days * 24);
+                    let minutes = Math.floor(diffStart / 60) - (weeks * 10080) - (days * 1440) - (hours * 60);
+                    let seconds = diffStart - (weeks * 604800) - (days * 86400) - (hours * 3600) - (minutes * 60);
 
-                i.innerHTML = `<span class="countdown-item">Paused (returns in <code>${fixed(hours)}</code>:<code>${fixed(minutes)}</code>:<code>${fixed(seconds)}</code>)</span>`;
-                return;
+                    i.innerHTML = `<span class="countdown-item">Paused (returns in <code>${fixed(hours)}</code>:<code>${fixed(minutes)}</code>:<code>${fixed(seconds)}</code>)</span>`;
+                    return;
+                }
             }
         }
 
