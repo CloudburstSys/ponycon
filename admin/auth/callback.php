@@ -8,7 +8,7 @@ if (!isset($_GET['code'])) {
 
 $appdata = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/private/oauth.json"), true);
 
-$crl = curl_init('https://auth.equestria.horse/hub/api/rest/oauth2/token');
+$crl = curl_init('https://account.equestria.dev/hub/api/rest/oauth2/token');
 curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($crl, CURLINFO_HEADER_OUT, true);
 curl_setopt($crl, CURLOPT_POST, true);
@@ -25,7 +25,7 @@ $result = json_decode($result, true);
 curl_close($crl);
 
 if (isset($result["access_token"])) {
-    $crl = curl_init('https://auth.equestria.horse/hub/api/rest/users/me');
+    $crl = curl_init('https://account.equestria.dev/hub/api/rest/users/me');
     curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($crl, CURLINFO_HEADER_OUT, true);
     curl_setopt($crl, CURLOPT_HTTPHEADER, [
