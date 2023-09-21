@@ -169,6 +169,14 @@
                                             facebook: "Facebook"
                                         }[social];
 
+                                        // Fix weird bug with mastodon links.
+                                        if (typeof event.socials[social] === "string") {
+                                            event.socials[social] = {
+                                                url: event.socials[social],
+                                                live: false
+                                            }
+                                        }
+
                                         if (social === "mastodon" && event.socials[social].url.startsWith("@"))
                                             event.socials[social] = event.socials[social].url.split("").splice(1).join("");
 
