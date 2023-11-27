@@ -51,11 +51,11 @@ nav, nav * {
     color: white;
 }
 
-.btn, .badge, .alert {
+.btn, .badge, .alert, .pt-banner, .pt-banner-button-primary, .pt-banner-button-secondary {
     filter: invert(1) hue-rotate(180deg) !important;
 }
 
-.navbar-toggler {
+.navbar-toggler, .form-select {
     filter: invert(1);
 }
 
@@ -86,4 +86,13 @@ nav, nav * {
 #share-box {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+}
+
+#settings-box {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.alert-icon {
+    filter: invert(1);
 }

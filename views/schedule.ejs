@@ -3,36 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PonyCon Countdown</title>
+    <title><%= data.name + " " ?? "" %>Schedule - PonyCon Countdown</title>
 
     <meta property="og:site_name" content="PonyCon Countdown">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#fff6ad">
-    <% if (shared !== null) { %>
-        <meta property="og:url" content="https://ponycon.info/<%= shared.id %>">
-        <meta property="og:title" content="<%= shared.name %>">
-        <meta property="og:description" content="<%= shared.summary ?? "No summary provided." %>">
-        <meta property="og:image" itemprop="image" content="<%= shared.icon %>">
-    <% } else { %>
-        <meta property="og:url" content="https://ponycon.info">
-        <meta property="og:title" content="PonyCon Countdown">
-        <meta property="og:description" content="A list of upcoming Pony conventions, both IRL and online.">
-        <meta name="og:image" itemprop="image" content="/assets/img/logo.svg">
-    <% } %>
+    <meta property="og:url" content="https://ponycon.info/schedule">
+    <meta property="og:title" content="<%= data.name + " " ?? ""%>Schedule - PonyCon Countdown">
+    <meta property="og:description" content="Schedule for <%= data.name ?? "Unknown convention" %>.">
+    <meta name="og:image" itemprop="image" content="/assets/img/logo.svg">
 
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/schedule.css">
     <link rel="stylesheet" href="/assets/css/accessibility.css">
     <link rel="stylesheet" id="dark-theme" href="/assets/css/dark.css">
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/countdown.js"></script>
+    <script src="/assets/js/schedule.js"></script>
     <script src="/assets/js/dark.js"></script>
     <link rel="shortcut icon" href="/assets/img/logo.svg" type="image/svg">
-
-    <script>
-        // Make some data available to the whole website.
-        const eventBreaks = {};
-    </script>
 </head>
 <body class="app">
 <div>
@@ -49,6 +37,8 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item a11y-skip">
                         <a class="nav-link" href="#list" tabindex="0">Skip to main content</a>
+                    </li><li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://ponycon.info" tabindex="0">Convention list</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" target="_blank" href="https://status.equestria.dev" tabindex="0">Status</a>
@@ -60,11 +50,8 @@
                         <a rel="me" class="nav-link" target="_blank" href="https://pony.social/@coninfo" tabindex="0">Mastodon</a>
                     </li>
                     <li class="nav-item theme-switcher">
-                        <a onclick="switchTheme();" class="theme-switcher-button" tabindex="0">
+                        <a onclick="switchTheme();" tabindex="0">
                             <img alt="Theme" id="theme-switcher-img" src="/assets/img/dark.svg">
-                        </a>
-                        <a onclick="settingsBox.show();" tabindex="0">
-                            <img alt="Settings" id="settings-img" src="/assets/img/settings_light.svg">
                         </a>
                     </li>
                 </ul>
@@ -87,7 +74,13 @@
             </div>
         </div>
     </div>
-</div>
+</div><script>
+    window.shareBox = new bootstrap.Modal(document.getElementById("share-box"));
+    shareBox.setLink = (link) => {
+        document.getElementById("share-box-link").value = link;
+    }
+</script>
+
 <script>
     window.shareBox = new bootstrap.Modal(document.getElementById("share-box"));
     shareBox.setLink = (link) => {
@@ -95,56 +88,25 @@
     }
 </script>
 
-<div class="modal fade" id="settings-box">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Settings</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <label>
-                    Highest unit levels for countdown:
-                    <select id="settings-countdownUnit" name="type" class="form-select" required>
-                        <option value="weeks">Weeks</option>
-                        <option value="days">Days</option>
-                    </select>
-                </label>
-                <br><br>
-                <button type="button" onclick="applySettings()" data-bs-dismiss="modal" class="btn btn-success">Apply</button>
-                <button type="button" data-bs-dismiss="modal" class="btn btn-outline-secondary">Cancel</button>
-                <script>
-                    document.getElementById("settings-countdownUnit").value = localStorage.getItem("countdownUnit") ?? "weeks";
-                </script>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    window.settingsBox = new bootstrap.Modal(document.getElementById("settings-box"));
-</script>
-
 <main class="main-box">
     <div class="container">
+        <!-- TODO: Improve this -->
+        <div class="alert alert-primary">
+            <button type="button" class="btn-close btn-close-white"></button><h3>New update (Oct 24th 2023)</h3>We've released a major update to the website! Here are the changes we've made that you'll notice.
+            <ul>
+                <li>Added a settings menu.</li>
+                <li>You can now change whether weeks are displayed via the settings menu.</li>
+                <li>You can now change the mapping provider used on the site via the settings menu (default is OpenStreetMap).</li>
+            </ul>
+            Thank you for using PonyCon Countdown. You may dismiss this message with the X in the top right and it will not reappear until the next update.
+        </div>
+        <!---->
         <% if (config.ponytownBanner.show) { %>
-            <div class="pt-banner">
-                <img class="alert-icon" src="/assets/social/ponytown.png" alt="Pony Town">
-                A Pony Town Event is ongoing! Visit the event by clicking the button!
-
-                <div class="pt-banner-buttons">
-                <a class="text-decoration-none" target="_blank" href="https://<%= config.ponytownBanner.server %>.pony.town/">
-                    <button type="button" class="btn pt-banner-button-primary">
-                        Join Pony Town Events
-                    </button>
-                </a>
-                <a class="text-decoration-none" target="_blank" href="<%= config.ponytownBanner.schedule %>">
-                    <button type="button" class="btn pt-banner-button-secondary">
-                        View schedule
-                    </button>
-                </a>
+            <a href="https://<%= config.ponytownBanner.server %>.pony.town/" target="_blank">
+                <div class="alert alert-primary">
+                    A Pony Town Event is ongoing! Visit the event by clicking this banner!
                 </div>
-            </div>
+            </a>
         <% } %>
         <div class="alert alert-info">
             All dates are shown in your local timezone (<span id="timezone-name"></span>).
@@ -191,8 +153,8 @@
                                 <% } %>
                                 <b>Starts:</b> <pc-date><%= event.dates.start.getTime() %></pc-date><br>
                                 <b>Ends:</b> <pc-date><%= event.dates.end.getTime() %></pc-date><br>
-                                <% if ((event.location.openstreetmap !== null) &&
-                                        (event.location.openstreetmap.url !== null) &&
+                                <% if (event.location.openstreetmap !== null &&
+                                        event.location.openstreetmap.url &&
                                         event.location.name !== null) { %>
                                     <b>Location:</b> <a target="_blank" href="<%= event.location.openstreetmap.url %>"><%= event.location.name %></a>
                                 <% } %>
@@ -306,7 +268,6 @@
     console.log(toOpen);
     if(toOpen !== null) {
         toOpen.open = true;
-        toOpen.scrollIntoView();
     }
     <% } %>
 </script>

@@ -7,10 +7,12 @@ function switchTheme() {
     if (darkTheme) {
         document.getElementById("dark-theme").disabled = true;
         document.getElementById("theme-switcher-img").src = "/assets/img/dark.svg";
+        document.getElementById("settings-img").src = "/assets/img/settings_light.svg";
         darkTheme = false;
     } else {
         document.getElementById("dark-theme").disabled = false;
         document.getElementById("theme-switcher-img").src = "/assets/img/light.svg";
+        document.getElementById("settings-img").src = "/assets/img/settings_dark.svg";
         darkTheme = true;
     }
 

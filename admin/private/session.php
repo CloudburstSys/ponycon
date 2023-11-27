@@ -25,27 +25,43 @@ if (!$isLoggedIn) {
     header("Location: /auth/login.php");
 }
 
-$xml = simplexml_load_string(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/../data/events.xml"), "SimpleXMLElement", LIBXML_NOCDATA);
-$json = json_encode($xml);
-$array = json_decode($json,true);
+$eventXml = simplexml_load_string(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/../data/events.xml"), "SimpleXMLElement", LIBXML_NOCDATA);
+$scheduleXml = simplexml_load_string(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/../data/schedule.xml"), "SimpleXMLElement", LIBXML_NOCDATA);
+$eventJson = json_encode($eventXml);
+$scheduleJson = json_encode($scheduleXml);
+$eventArray = json_decode($eventJson,true);
+$scheduleArray = json_decode($scheduleJson, true);
 
 $list = [];
+$schedule = [];
 
-if (isset($array["event"])) {
-    if (isset($array["event"]["name"])) {
-        $events = [ $array["event"] ];
+if (isset($eventArray["event"])) {
+    if (isset($eventArray["event"]["name"])) {
+        $events = [ $eventArray["event"] ];
     } else {
-        $events = $array["event"];
+        $events = $eventArray["event"];
     }
 
     foreach ($events as $event) {
         $list[$event["@attributes"]["id"]] = [
+            "hidden" => $event["@attributes"]["hidden"] == "true",
             "type" => $event["@attributes"]["type"],
             "name" => trim($event["name"] ?? "<untitled>"),
             "summary" => trim($event["summary"] ?? "") === "" ? null : trim($event["summary"] ?? ""),
             "location" => isset($event["location"]) ? [
                 "name" => trim($event["location"]["name"] ?? "") === "" ? null : trim($event["location"]["name"] ?? ""),
-                "url" => trim($event["location"]["url"] ?? "") === "" ? null : trim($event["location"]["url"] ?? "")
+                "openstreetmap" => isset($event["location"]["openstreetmap"]) ? [
+                    "name" => trim($event["location"]["openstreetmap"]["name"] ?? "") === "" ? null : trim($event["location"]["openstreetmap"]["name"] ?? ""),
+                    "url" => trim($event["location"]["openstreetmap"]["url"] ?? "") === "" ? null : trim($event["location"]["openstreetmap"]["url"] ?? ""),
+                ] : null,
+                "googlemaps" => isset($event["location"]["googlemaps"]) ? [
+                    "name" => trim($event["location"]["googlemaps"]["name"] ?? "") === "" ? null : trim($event["location"]["googlemaps"]["name"] ?? ""),
+                    "url" => trim($event["location"]["googlemaps"]["url"] ?? "") === "" ? null : trim($event["location"]["googlemaps"]["url"] ?? ""),
+                ] : null,
+                "applemaps" => isset($event["location"]["applemaps"]) ? [
+                    "name" => trim($event["location"]["applemaps"]["name"] ?? "") === "" ? null : trim($event["location"]["applemaps"]["name"] ?? ""),
+                    "url" => trim($event["location"]["applemaps"]["url"] ?? "") === "" ? null : trim($event["location"]["applemaps"]["url"] ?? ""),
+                ] : null,
             ] : null,
             "irl" => isset($event["irl"]),
             "online" => isset($event["online"]),
@@ -86,13 +102,13 @@ if (isset($array["event"])) {
     }
 }
 
-function export_list() {
+function export_event_list() {
     global $list;
 
     $str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<events>\n";
 
     foreach ($list as $id => $event) {
-        $str .= "    <event id=\"" . str_replace("\"", "\\\"", $id) . "\" type=\"" . str_replace("\"", "\\\"", $event["type"]) . "\">\n";
+        $str .= "    <event id=\"" . str_replace("\"", "\\\"", $id) . "\" type=\"" . str_replace("\"", "\\\"", $event["type"]) . "\" hidden=\"" . (isset($event["hidden"]) && $event["hidden"] ? "true" : "false") . "\">\n";
 
         if (isset($event["name"])) $str .= "        <name>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["name"])) . "</name>\n";
         if (isset($event["summary"])) $str .= "        <summary>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["summary"])) . "</summary>\n";
@@ -121,9 +137,28 @@ function export_list() {
         }
         if (isset($event["location"])) {
             $str .= "        <location>\n";
-
-            $str .= "            <url>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["url"])) . "</url>\n";
             $str .= "            <name>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["name"])) . "</name>\n";
+
+            if (isset($event["location"]["openstreetmap"])) {
+                $str .= "            <openstreetmap>\n";
+                $str .= "                <name>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["openstreetmap"]["name"])) . "</name>\n";
+                $str .= "                <url>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["openstreetmap"]["url"])) . "</url>\n";
+                $str .= "            </openstreetmap>\n";
+            }
+
+            if (isset($event["location"]["googlemaps"])) {
+                $str .= "            <googlemaps>\n";
+                $str .= "                <name>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["googlemaps"]["name"])) . "</name>\n";
+                $str .= "                <url>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["googlemaps"]["url"])) . "</url>\n";
+                $str .= "            </googlemaps>\n";
+            }
+
+            if (isset($event["location"]["applemaps"])) {
+                $str .= "            <applemaps>\n";
+                $str .= "                <name>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["applemaps"]["name"])) . "</name>\n";
+                $str .= "                <url>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["location"]["applemaps"]["url"])) . "</url>\n";
+                $str .= "            </applemaps>\n";
+            }
 
             $str .= "        </location>\n";
         }

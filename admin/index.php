@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <?php if (isset($_GET["i"]) || isset($_GET["n"])): ?>
+    <?php if (isset($_GET["i"]) || isset($_GET["n"]) || isset ($_GET["d"])): ?>
     <?php
 
     $event = null;
@@ -72,31 +72,79 @@
                         </div>
                     </td>
                     <td>
-                        <input class="form-control" name="location" id="location" type="text" placeholder="Location" value="<?= isset($_GET["i"]) && isset($event["location"]) ? $event["location"]["name"] : "" ?>">
-                        <input name="location_url" id="location-url" type="hidden" value="<?= isset($_GET["i"]) && isset($event["location"]) ? $event["location"]["url"] : "" ?>">
+                        <input class="form-control" name="location[name]" id="location" type="text" placeholder="Location Display Name" value="<?= isset($_GET["i"]) && isset($event["location"]) ? $event["location"]["name"] : "" ?>">
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="text-align: right; padding-right: 10px; width: 15%;">OpenStreetMap:</td>
+                                <td><input class="form-control" name="location[openstreetmap]" id="location-openstreetmap" type="text" placeholder="Location Name" value="<?= isset($_GET["i"]) && isset($event["location"]["openstreetmap"]) ? $event["location"]["openstreetmap"]["name"] : "" ?>"></td>
+                                <input name="location_url[openstreetmap]" id="location-openstreetmap-url" type="hidden" value="<?= isset($_GET["i"]) && isset($event["location"]["openstreetmap"]) ? $event["location"]["openstreetmap"]["url"] : "" ?>">
+                                <td>
+                                    <label>
+                                        <input type="radio" class="form-check-input" name="location-preview" value="openstreetmap" id="location-openstreetmap-preview" checked>
+                                        Preview
+                                    </label>
+                                </td>
+                            </tr>
+                            <!--<tr>
+                                <td style="text-align: right; padding-right: 10px; width: 15%;">Google Maps:</td>
+                                <td><input class="form-control" name="location[googlemaps]" id="location-googlemaps" type="text" placeholder="Location Name" value="<?= isset($_GET["i"]) && isset($event["location"]["googlemaps"]) ? $event["location"]["googlemaps"]["name"] : "" ?>"></td>
+                                <input name="location_url[googlemaps]" id="location-googlemaps-url" type="hidden" value="<?= isset($_GET["i"]) && isset($event["location"]["googlemaps"]) ? $event["location"]["googlemaps"]["url"] : "" ?>">
+                                <td>
+                                    <label>
+                                        <input type="radio" class="form-check-input" name="location-preview" value="googlemaps"  id="location-googlemaps-preview">
+                                        Preview
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding-right: 10px; width: 15%;">Apple Maps:</td>
+                                <td><input class="form-control" name="location[applemaps]" id="location-applemaps" type="text" placeholder="Location Name" value="<?= isset($_GET["i"]) && isset($event["location"]["applemaps"]) ? $event["location"]["applemaps"]["name"] : "" ?>"></td>
+                                <input name="location_url[applemaps]" id="location-applemaps-url" type="hidden" value="<?= isset($_GET["i"]) && isset($event["location"]["applemaps"]) ? $event["location"]["applemaps"]["url"] : "" ?>">
+                                <td>
+                                    <label>
+                                        <input type="radio" class="form-check-input" name="location-preview" value="applemaps"  id="location-applemaps-preview">
+                                        Preview
+                                    </label>
+                                </td>
+                            </tr>-->
+                        </table>
+                        <input id="location-url" type="hidden" value="<?= isset($_GET["i"]) && isset($event["location"]["openstreetmap"]) ? $event["location"]["openstreetmap"]["url"] : "" ?>">
                         <br>
                         <p><b>Detected:</b> <span id="map-detected">-</span> (<code id="map-detected-id">-</code>)</p>
                         <iframe style="border: 1px solid black;" id="map" src="https://www.openstreetmap.org/export/embed.html"></iframe>
                         <!-- ?bbox=1.8757578%2C47.8132802%2C1.9487114%2C47.9335581 [2, 0, 1, 3] -->
                         <script>
-                            document.getElementById("location").addEventListener("change", refreshMap)
+                            // TODO: Modify how this behaves
+                            document.getElementById("location-openstreetmap").addEventListener("change", refreshMap("openstreetmap"))
+                            document.getElementById("location-googlemaps").addEventListener("change", refreshMap("googlemaps"))
+                            document.getElementById("location-applemaps").addEventListener("change", refreshMap("applemaps"))
 
-                            async function refreshMap() {
-                                try {
-                                    let data = await (await fetch("https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(document.getElementById("location").value) + "&format=json")).json();
-                                    console.log(data, data[0]);
-                                    let first = data[0];
+                            async function refreshMap(type) {
+                                if (type === "openstreetmap") {
+                                    try {
+                                        let data = await (await fetch("https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(document.getElementById("location-openstreetmap").value) + "&format=json")).json();
+                                        console.log(data, data[0]);
+                                        let first = data[0];
 
-                                    document.getElementById("map-detected").innerText = first['display_name'];
-                                    document.getElementById("map-detected-id").innerText = first['osm_id'];
-                                    document.getElementById("location-url").value = "https://openstreetmap.org/" + first['osm_type'] + "/" + first['osm_id'];
+                                        document.getElementById("map-detected").innerText = first['display_name'];
+                                        document.getElementById("map-detected-id").innerText = first['osm_id'];
+                                        document.getElementById("location-openstreetmap-url").value = "https://openstreetmap.org/" + first['osm_type'] + "/" + first['osm_id'];
 
-                                    console.log(first['boundingbox'][2] + "," + first['boundingbox'][0] + "," + first['boundingbox'][3] + "," + first['boundingbox'][1]);
-                                    
-                                    document.getElementById("map").src = "https://www.openstreetmap.org/export/embed.html?bbox=" + encodeURIComponent(first['boundingbox'][2] + "," + first['boundingbox'][0] + "," + first['boundingbox'][3] + "," + first['boundingbox'][1])
-                                } catch (e) {
-                                    document.getElementById("map-detected").innerText = "-";
-                                    document.getElementById("map").src = "https://www.openstreetmap.org/export/embed.html";
+                                        console.log(first['boundingbox'][2] + "," + first['boundingbox'][0] + "," + first['boundingbox'][3] + "," + first['boundingbox'][1]);
+
+                                        document.getElementById("map").src = "https://www.openstreetmap.org/export/embed.html?bbox=" + encodeURIComponent(first['boundingbox'][2] + "," + first['boundingbox'][0] + "," + first['boundingbox'][3] + "," + first['boundingbox'][1])
+                                    } catch (e) {
+                                        document.getElementById("map-detected").innerText = "-";
+                                        document.getElementById("map").src = "https://www.openstreetmap.org/export/embed.html";
+                                    }
+                                } else if (type === "googlemaps") {
+                                    // TODO: Support Google Maps embed.
+                                    // Google query format: https://google.com/maps/?q=Test
+                                    // Use Google Maps Embed API for embed.
+                                } else if (type === "applemaps") {
+                                    // TODO: Support Apple Maps embed.
+                                    // Apple query format: https://maps.apple.com/?q=Test
+                                    // Use the search API to find the location and then use MapKit JS to embed.
                                 }
                             }
 
@@ -508,9 +556,19 @@
             <br>
             <p style="text-align: center;">
                 <label>
+                    <input type="checkbox" class="form-check-input" name="hidden" <?= isset($_GET["i"]) && isset($event["hidden"]) && $event["hidden"] ? "checked" : "" ?>>
+                    Hidden
+                </label>
+                <span style="margin-left: 5px; padding-left: 10px; border-left: 1px solid rgba(0, 0, 0, .25);">
+                <label>
+                    <input type="checkbox" class="form-check-input" name="_duplicate" <?= !isset($_GET["i"]) ? "disabled" : "" ?>>
+                    Duplicate
+                </label>
+                <label>
                     <input type="checkbox" class="form-check-input" name="_delete" <?= !isset($_GET["i"]) ? "disabled" : "" ?>>
                     Delete
                 </label>
+                </span>
                 <span style="margin-left: 5px; padding-left: 10px; border-left: 1px solid rgba(0, 0, 0, .25);">
                     <input type="submit" value="Update" class="btn btn-primary">
                 </span>

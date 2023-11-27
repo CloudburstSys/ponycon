@@ -18,7 +18,14 @@ $logo = json_decode($data["logo"] ?? "null", true) ?? null;
 unset($data["id"]);
 unset($data["logo"]);
 
-if ($id === "") $id = uuidv4(openssl_random_pseudo_bytes(16));
+if ($id === "" || isset($data["_duplicate"])) {
+    $oldLogoLocation = $_SERVER['DOCUMENT_ROOT'] . "/../assets/events/" . $id . ".png";
+    $id = uuidv4(openssl_random_pseudo_bytes(16));
+    if (isset($data["_duplicate"])) {
+        // Copies the existing logo, if it exists.
+        copy($oldLogoLocation, $_SERVER['DOCUMENT_ROOT'] . "/../assets/events/" . $id . ".png");
+    }
+}
 
 $socials = [];
 foreach ($data["socials"] as $name => $social) {
@@ -55,14 +62,49 @@ if ($data["ponytown"] === "none") unset($data["ponytown"]);
 if (trim($data["website"]) === "") unset($data["website"]);
 if (trim($data["summary"]) === "") unset($data["summary"]);
 
-if (trim($data["location"]) === "") {
-    unset($data["location"]);
+// TODO: Modify location handling to support current setup
+$location = [
+        'name' => $data["location"]["name"] ?? null,
+        'openstreetmap' => null,
+        'googlemaps' => null,
+        'applemaps' => null
+];
+
+if (trim($data["location"]["openstreetmap"]) === "") {
+    unset($location["openstreetmap"]);
 } else {
-    $data["location"] = [
-        "name" => $data["location"],
-        "url" => $data["location_url"] ?? null
+    $location["openstreetmap"] = [
+        "name" => $data["location"]["openstreetmap"],
+        "url" => $data["location_url"]["openstreetmap"] ?? null
     ];
 }
+
+/* if (trim($data["location"]["googlemaps"]) === "") {
+    unset($location["googlemaps"]);
+} else {
+    $location["googlemaps"] = [
+        "name" => $data["location"]["googlemaps"],
+        "url" => $data["location_url"]["googlemaps"] ?? null
+    ];
+}
+
+if (trim($data["location"]["applemaps"]) === "") {
+    unset($location["applemaps"]);
+} else {
+    $location["applemaps"] = [
+        "name" => $data["location"]["applemaps"],
+        "url" => $data["location_url"]["applemaps"] ?? null
+    ];
+}*/
+
+if (isset($location["name"]) && trim($location["name"]) != "") {
+    $data["location"] = $location;
+} else {
+    unset($data["location"]);
+}
+
+if (isset($data["hidden"])) $data["hidden"] = true;
+else $data["hidden"] = false;
 
 if (in_array($id, array_keys($list))) unset($list[$id]);
 if (!isset($data["_delete"])) $list[$id] = $data;
@@ -74,7 +116,12 @@ if (isset($logo)) {
 }
 
 file_put_contents($_SERVER["DOCUMENT_ROOT"] . "/../data/events.bak", file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/../data/events.xml"));
-file_put_contents($_SERVER["DOCUMENT_ROOT"] . "/../data/events.xml", export_list());
+file_put_contents($_SERVER["DOCUMENT_ROOT"] . "/../data/events.xml", export_event_list());
+
+$shortenedId = "";
+foreach( explode("-", $id) as $section) {
+    $shortenedId += $section[0];
+}
 
 ?>
 <!doctype html>
@@ -92,6 +139,8 @@ file_put_contents($_SERVER["DOCUMENT_ROOT"] . "/../data/events.xml", export_list
     <div class="container">
         <br>
         <p>The operation completed successfully.</p>
+        <p>Link to share:</p>
+        <input type="text" id="share-box-link" disabled class="form-control" value="https://ponycon.info/<?= $shortenedId ?>">
         <a class="btn btn-primary" href="/">Home</a><br/><br/>
         <p>Funky debug shit</p>
         <?php var_dump($data); ?>

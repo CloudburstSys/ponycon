@@ -1,6 +1,7 @@
 import {readFileSync, writeFileSync, watchFile} from "fs";
 import xml from "xml-js";
 import Event, {EventBreak, EventEnvironment, EventPonytown, EventType} from "../Types/Event";
+import Schedule, {RoomColor, ScheduleEvent, ScheduleRoom} from "../Types/Schedule";
 
 export default class XML {
     private supportedSocials: string[] = [
@@ -19,17 +20,26 @@ export default class XML {
     }
 
     public events: Event[];
-    public rawData: any;
+    public schedule: Schedule;
+    public rawEventData: any;
+    public rawScheduleData: any;
 
     constructor() {
-        this._parse();
+        this._parseEvents();
+        this._parseSchedule();
         this._removeOldEvents();
 
         watchFile("../data/events.xml", (current, previous) => {
-            this._parse();
+            this._parseEvents();
         });
 
-        setInterval(this._removeOldEvents, (60 * 60 * 1000));
+        watchFile("../data/schedule.xml", (current, previous) => {
+            this._parseSchedule();
+        });
+
+        setInterval(() => {
+            this._removeOldEvents();
+        }, (60 * 60 * 1000));
     }
 
     _removeOldEvents() {
@@ -42,8 +52,8 @@ export default class XML {
             } else {
                 // Needs removing!
 
-                this.rawData.elements[0].elements.splice(
-                    this.rawData.elements[0].elements.findIndex(element => {
+                this.rawEventData.elements[0].elements.splice(
+                    this.rawEventData.elements[0].elements.findIndex(element => {
                         if (element.name !== "event") return false;
                         if (element.attributes === undefined) return false;
 
@@ -54,18 +64,18 @@ export default class XML {
         });
 
         //this.events = newEvents;
-        let xmlString = xml.json2xml(JSON.stringify(this.rawData, null, 4), { compact: false, spaces: 4 });
+        let xmlString = xml.json2xml(JSON.stringify(this.rawEventData, null, 4), { compact: false, spaces: 4 });
         writeFileSync("../data/events.xml", xmlString);
     }
 
-    _parse() {
+    _parseEvents() {
         this.events = [];
         
         let xmlString = readFileSync("../data/events.xml").toString();
 
         let xmlData = JSON.parse(xml.xml2json(xmlString, {compact: false}));
 
-        this.rawData = xmlData;
+        this.rawEventData = xmlData;
 
         if (xmlData.elements === null) return;
         if (xmlData.elements[0].name !== "events") return;
@@ -131,14 +141,74 @@ export default class XML {
 
                         element2.elements.forEach(element3 => {
                             if(element3.elements === undefined) return;
-                            if(element3.elements[0].text === undefined) return;
 
                             switch(element3.name) {
-                                case "url":
-                                    event.location.url = element3.elements[0].text.trim();
-                                    break;
                                 case "name":
+                                    if (element3.elements[0].text === undefined) return;
                                     event.location.name = element3.elements[0].text.trim();
+                                    break;
+                                case "openstreetmap":
+                                    event.location.openstreetmap = {
+                                        name: null,
+                                        url: null
+                                    }
+                                    element3.elements.forEach(element4 => {
+                                        if (element4.elements === undefined) return;
+                                        if (element4.elements[0].text === undefined) return;
+
+                                        switch(element4.name) {
+                                            case "url":
+                                                event.location.openstreetmap.url = element4.elements[0].text.trim();
+                                                break;
+                                            case "name":
+                                                event.location.openstreetmap.name = element4.elements[0].text.trim();
+                                                break;
+                                            default:
+                                                return;
+                                        }
+                                    });
+                                    break;
+                                case "googlemaps":
+                                    event.location.googlemaps = {
+                                        name: null,
+                                        url: null
+                                    }
+                                    element3.elements.forEach(element4 => {
+                                        if (element4.elements === undefined) return;
+                                        if (element4.elements[0].text === undefined) return;
+
+                                        switch(element4.name) {
+                                            case "url":
+                                                event.location.googlemaps.url = element4.elements[0].text.trim();
+                                                break;
+                                            case "name":
+                                                event.location.googlemaps.name = element4.elements[0].text.trim();
+                                                break;
+                                            default:
+                                                return;
+                                        }
+                                    });
+                                    break;
+                                case "applemaps":
+                                    event.location.applemaps = {
+                                        name: null,
+                                        url: null
+                                    }
+                                    element3.elements.forEach(element4 => {
+                                        if (element4.elements === undefined) return;
+                                        if (element4.elements[0].text === undefined) return;
+
+                                        switch(element4.name) {
+                                            case "url":
+                                                event.location.applemaps.url = element4.elements[0].text.trim();
+                                                break;
+                                            case "name":
+                                                event.location.applemaps.name = element4.elements[0].text.trim();
+                                                break;
+                                            default:
+                                                return;
+                                        }
+                                    });
                                     break;
                                 default:
                                     return;
@@ -238,6 +308,88 @@ export default class XML {
             });
 
             this.events.push(event);
+        });
+    }
+
+    _parseSchedule() {
+        this.schedule = new Schedule(false, "", {}, []);
+
+        let xmlString = readFileSync("../data/schedule.xml").toString();
+
+        let xmlData = JSON.parse(xml.xml2json(xmlString, {compact: false}));
+
+        this.rawScheduleData = xmlData;
+
+        if (xmlData.elements === null) return;
+        if (xmlData.elements[0].name !== "schedule") return;
+        if (xmlData.elements[0].elements === undefined) return;
+
+        console.log(JSON.stringify(xmlData));
+
+        xmlData.elements[0].elements.forEach(element => {
+            switch (element.name) {
+                case "enabled":
+                    if (element.elements === undefined) return;
+                    if (element.elements[0].text === undefined) return;
+                    this.schedule.enabled = element.elements[0].text.trim() === "true";
+                    break;
+                case "name":
+                    if (element.elements === undefined) return;
+                    if (element.elements[0].text === undefined) return;
+                    this.schedule.name = element.elements[0].text.trim();
+                    break;
+                case "description":
+                    if (element.elements === undefined) return;
+
+                    this.schedule.description = {};
+
+                    element.elements.forEach(text => {
+                        if (text.elements === undefined) return;
+                        if (text.elements[0].text === undefined) return;
+
+                        this.schedule.description[text.name] = text.elements[0].text.trim();
+                    });
+                    break;
+                case "events":
+                    // TODO: Schedule processing.
+                    if (element.elements === undefined) return;
+
+                    element.elements.forEach(rooms => {
+                        if (rooms.elements === undefined) return;
+                        if (rooms.name !== "room") return;
+                        if (rooms.attributes === undefined) return;
+                        if (rooms.attributes.name === undefined) return;
+                        if (rooms.attributes.color === undefined) return;
+
+                        let room = new ScheduleRoom(rooms.attributes.name, RoomColor.fromHex(rooms.attributes.color), []);
+                        let roomName = room.name;
+
+                        this.schedule.addRoom(room);
+
+                        rooms.elements.forEach(events => {
+                            if (events.elements === undefined) return;
+                            if (events.name !== "event") return;
+                            if (events.attributes === undefined) return;
+                            if (events.attributes.start === undefined) return;
+                            if (events.attributes.end === undefined) return;
+
+                            let event: ScheduleEvent = {
+                                start: new Date(events.attributes.start.trim()),
+                                end: new Date(events.attributes.end.trim()),
+                                text: {}
+                            }
+
+                            events.elements.forEach(text => {
+                                if (text.elements === undefined) return;
+                                if (text.elements[0].text === undefined) return;
+
+                                event.text[text.name] = text.elements[0].text.trim();
+                            });
+
+                            this.schedule.addEvent(roomName, event);
+                        });
+                    });
+            }
         });
     }
 }

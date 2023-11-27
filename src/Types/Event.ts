@@ -2,11 +2,12 @@ import { existsSync } from 'fs';
 
 export default class Event {
     public id: string;
+    public hidden: boolean;
     public type: EventType;
     public name: string = null;
     public summary: string = null;
     public environment: EventEnvironment = EventEnvironment.None;
-    public location: EventLocation = { name: null, url: null };
+    public location: EventLocation = { name: null, openstreetmap: null, googlemaps: null, applemaps: null };
     public dates: EventDates = { start: null, end: null };
     public breaks: EventBreak[] = [];
     public socials: EventSocials = {};
@@ -47,7 +48,18 @@ export enum EventPonytown {
 
 export interface EventLocation {
     name: string,
-    url: string
+    openstreetmap: {
+        name: string,
+        url: string
+    },
+    googlemaps: {
+        name: string,
+        url: string
+    },
+    applemaps: {
+        name: string,
+        url: string
+    }
 }
 
 export interface EventDates {

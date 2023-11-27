@@ -17,7 +17,11 @@ curl_setopt($crl, CURLOPT_HTTPHEADER, [
     "Content-Type: application/x-www-form-urlencoded",
     "Accept: application/json"
 ]);
-curl_setopt($crl, CURLOPT_POSTFIELDS, "grant_type=authorization_code&redirect_uri=" . urlencode("https://" . $_SERVER['HTTP_HOST'] . "/auth/callback.php") . "&code=" . $_GET['code']);
+if ($_SERVER['SERVER_PORT'] == 8000) {
+    curl_setopt($crl, CURLOPT_POSTFIELDS, "grant_type=authorization_code&redirect_uri=" . urlencode("http://localhost:8000/auth/callback.php") . "&code=" . $_GET['code']);
+} else {
+    curl_setopt($crl, CURLOPT_POSTFIELDS, "grant_type=authorization_code&redirect_uri=" . urlencode("https://" . $_SERVER['HTTP_HOST'] . "/auth/callback.php") . "&code=" . $_GET['code']);
+}
 
 $result = curl_exec($crl);
 $result = json_decode($result, true);
