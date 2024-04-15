@@ -55,6 +55,10 @@ nav, nav * {
     filter: invert(1) hue-rotate(180deg) !important;
 }
 
+.live-banner-button-primary, .live-banner-button-ponytown {
+    filter: invert(0) hue-rotate(360deg) !important;
+}
+
 .navbar-toggler, .form-select {
     filter: invert(1);
 }

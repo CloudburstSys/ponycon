@@ -95,7 +95,7 @@ function _countdown() {
                 console.error(`Unknown top-level unit for countdown: ${localStorage.getItem("countdownUnit")}.`);
         }
 
-        i.innerHTML = `<span class="countdown-item">${weeks > 0 ? `<code>${weeks}</code>w ` : ``}${days > 0 ? `<code>${days}</code>d ` : ``}<code>${fixed(hours)}</code>:<code>${fixed(minutes)}</code>:<code>${fixed(seconds)}</code></span>`;
+        i.innerHTML = `<span class="countdown-item">${weeks > 0 ? `<code>${weeks}</code>w ` : ``}${days > 0 ? `<code>${days}</code>d ` : ``}${i.getAttribute("data-show-times") === "true" ? `<code>${fixed(hours)}</code>:<code>${fixed(minutes)}</code>:<code>${fixed(seconds)}</code>` : ``}</span>`;
     })
 }
 
@@ -109,11 +109,17 @@ window.onload = () => {
     _countdown();
 
     Array.from(document.getElementsByTagName("pc-date")).forEach((i) => {
-        let date = new Date(parseInt(i.innerHTML.trim()));
+        let date = new Date(parseInt(i.getAttribute("timestamp").trim()));
+
+        // If show-times is false, we set date to midnight.
+        if (i.getAttribute("show-times") === "false") {
+            date.setHours(0, 0, 0, 0);
+        }
+
         let parts = date.toString().split(" ");
         let time = parts[4].split(":");
 
-        i.outerHTML = parts[0] + " " + parts[2] + " " + parts[1] + " " + parts[3] + ", " + time[0] + ":" + time[1];
+        i.outerHTML = parts[0] + " " + parts[2] + " " + parts[1] + " " + parts[3] + (i.getAttribute("show-times") === "true" ? ", " + time[0] + ":" + time[1] : "");
     });
 
     // <a target="_blank" href="<%= event.location.openstreetmap.url %>"><%= event.location.name %></a>

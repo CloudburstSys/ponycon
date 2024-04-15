@@ -58,7 +58,11 @@ if (isset($data["break"])) {
     }
 }
 
-if ($data["ponytown"] === "none") unset($data["ponytown"]);
+if (isset($data["streaming"]["enabled"])) $data["streaming"]["enabled"] = true;
+else $data["streaming"]["enabled"] = false;
+if (trim($data["streaming"]["stream"]) === "") unset($data["streaming"]["stream"]);
+if (trim($data["streaming"]["ponyTown"]) === "none") unset($data["streaming"]["ponyTown"]);
+
 if (trim($data["website"]) === "") unset($data["website"]);
 if (trim($data["summary"]) === "") unset($data["summary"]);
 
@@ -103,6 +107,9 @@ if (isset($location["name"]) && trim($location["name"]) != "") {
     unset($data["location"]);
 }
 
+if (isset($data["show_times"])) $data["show_times"] = true;
+else $data["show_times"] = false;
+
 if (isset($data["hidden"])) $data["hidden"] = true;
 else $data["hidden"] = false;
 
@@ -120,7 +127,7 @@ file_put_contents($_SERVER["DOCUMENT_ROOT"] . "/../data/events.xml", export_even
 
 $shortenedId = "";
 foreach( explode("-", $id) as $section) {
-    $shortenedId += $section[0];
+    $shortenedId = $shortenedId . $section[0];
 }
 
 ?>

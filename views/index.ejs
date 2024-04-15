@@ -5,15 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PonyCon Countdown</title>
 
+    <meta name='keywords' content="brony, pegasister, convention, con, pony convention, convention countdown, countdown, pony con, ponycon">
+    <meta name='subject' content="Pony conventions">
+    <meta name='copyright' content="Cloudburst (Leah)">
+    <meta name='HandheldFriendly' content='True'>
+
     <meta property="og:site_name" content="PonyCon Countdown">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#fff6ad">
     <% if (shared !== null) { %>
+        <meta name='description' content="<%= shared.summary ?? "No summary provided." %>">
+
         <meta property="og:url" content="https://ponycon.info/<%= shared.id %>">
         <meta property="og:title" content="<%= shared.name %>">
         <meta property="og:description" content="<%= shared.summary ?? "No summary provided." %>">
         <meta property="og:image" itemprop="image" content="<%= shared.icon %>">
+        <meta name="robots" content="noindex">
     <% } else { %>
+        <meta name='description' content="A list of upcoming Pony conventions, both IRL and online.">
+
         <meta property="og:url" content="https://ponycon.info">
         <meta property="og:title" content="PonyCon Countdown">
         <meta property="og:description" content="A list of upcoming Pony conventions, both IRL and online.">
@@ -32,6 +42,41 @@
     <script>
         // Make some data available to the whole website.
         const eventBreaks = {};
+
+        <%
+        // Puts data in ongoingEvents to make life easier.
+        let ongoingEvents = {};
+        events.forEach(event => {
+            let diffStart = Math.round((event.dates.start.getTime() - new Date().getTime()) / 1000);
+            let diffEnd = Math.round((event.dates.end.getTime() - new Date().getTime()) / 1000);
+
+            if (diffStart <= 0 && diffEnd > 0 && event.streaming.enabled) {
+                // Event is ongoing.
+                ongoingEvents[event.id] = {
+                    name: event.name,
+                    stream: null,
+                    ponyTown: null
+                };
+
+                if (event.streaming.stream !== null) {
+                    ongoingEvents[event.id].stream = event.streaming.stream;
+                }
+
+                if (event.streaming.ponyTown !== null) {
+                    ongoingEvents[event.id].ponyTown = [
+                        null,
+                        "event",
+                        "eventblue",
+                        "eventgreen"
+                    ][event.streaming.ponyTown];
+                }
+
+                if (event.streaming.stream === null && event.streaming.ponyTown === null) {
+                    delete ongoingEvents[event.id];
+                }
+            }
+        });
+        %>
     </script>
 </head>
 <body class="app">
@@ -50,9 +95,9 @@
                     <li class="nav-item a11y-skip">
                         <a class="nav-link" href="#list" tabindex="0">Skip to main content</a>
                     </li>
-                    <li class="nav-item">
+                    <!--<li class="nav-item">
                         <a class="nav-link" target="_blank" href="https://status.equestria.dev" tabindex="0">Status</a>
-                    </li>
+                    </li>-->
                     <li class="nav-item">
                         <a class="nav-link" target="_blank" href="https://twitter.com/Con_Countdown" tabindex="0">Twitter</a>
                     </li>
@@ -121,33 +166,57 @@
         </div>
     </div>
 </div>
+
 <script>
     window.settingsBox = new bootstrap.Modal(document.getElementById("settings-box"));
 </script>
 
 <main class="main-box">
     <div class="container">
-        <% if (config.ponytownBanner.show) { %>
-            <div class="pt-banner">
-                <img class="alert-icon" src="/assets/social/ponytown.png" alt="Pony Town">
-                A Pony Town Event is ongoing! Visit the event by clicking the button!
+        <% for (let liveEvent in ongoingEvents) { %>
+            <div class="live-banner">
+                <img class="alert-icon" src="/assets/img/live_tv.svg" alt="Live Stream TV">
+                <span style="font-weight: bold;"><%= ongoingEvents[liveEvent].name %></span> is live! Click the button to watch.
 
-                <div class="pt-banner-buttons">
-                <a class="text-decoration-none" target="_blank" href="https://<%= config.ponytownBanner.server %>.pony.town/">
-                    <button type="button" class="btn pt-banner-button-primary">
-                        Join Pony Town Events
-                    </button>
-                </a>
-                <a class="text-decoration-none" target="_blank" href="<%= config.ponytownBanner.schedule %>">
-                    <button type="button" class="btn pt-banner-button-secondary">
-                        View schedule
-                    </button>
-                </a>
+                <div class="live-banner-buttons">
+                    <% if (ongoingEvents[liveEvent].stream !== null) { %>
+                    <a class="text-decoration-none" target="_blank" href="<%= ongoingEvents[liveEvent].stream %>">
+                        <button type="button" class="btn live-banner-button-primary">
+                            Watch stream
+                        </button>
+                    </a>
+                    <% } %>
+                    <% if (ongoingEvents[liveEvent].ponyTown !== null) {  %>
+                    <a class="text-decoration-none" target="_blank" href="https://<%= ongoingEvents[liveEvent].ponyTown %>.pony.town/">
+                        <button type="button" class="btn live-banner-button-ponytown">
+                            PonyTown Events
+                        </button>
+                    </a>
+                    <% } %>
                 </div>
             </div>
         <% } %>
-        <div class="alert alert-info">
-            All dates are shown in your local timezone (<span id="timezone-name"></span>).
+        <noscript>
+            <div class="alert alert-danger">
+                PonyCon Countdown requires Javascript to operate properly.
+                Without it, the countdown timers + start and end times for events will not display correctly.<br>
+                Please enable Javascript for the intended experience.
+            </div>
+
+            <div class="alert alert-info">
+                All dates are shown in Universal Coordinated Time (UTC).<br>
+                Accurate countdowns do not display for conventions that have yet to publicly announce their times.
+            </div>
+
+            <style>
+                #local-timezone-banner {
+                    display: none;
+                }
+            </style>
+        </noscript>
+        <div class="alert alert-info" id="local-timezone-banner">
+            All dates are shown in your local timezone (<span id="timezone-name"></span>).<br>
+            Accurate countdowns do not display for conventions that have yet to publicly announce their times.
             <script>
                 document.getElementById("timezone-name").innerText = new Date().toTimeString().split("(")[1].split(")")[0];
             </script>
@@ -175,7 +244,7 @@
                             <%= ["Convention", "Concert", "Album release"][event.type-1]; %>
                         </span>
                             <% } %>
-                            <span class="intro-countdown countdown" data-countdown-id="<%= event.id %>" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></span>
+                            <span class="intro-countdown countdown" data-countdown-id="<%= event.id %>" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>" data-show-times="<%= event.showTimes %>"></span>
                     </span>
                     </summary>
 
@@ -184,13 +253,23 @@
                             <img src="<%= event.icon %>" alt="Convention icon" class="details-icon-img">
                         </div>
                         <div class="details-info">
-                            <h4 class="countdown-container"><b class="countdown" data-countdown-id="<%= event.id %>" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>"></b></h4>
+                            <h4 class="countdown-container"><b class="countdown" data-countdown-id="<%= event.id %>" data-countdown-start-date="<%= event.dates.start.getTime() %>" data-countdown-end-date="<%= event.dates.end.getTime() %>" data-show-times="<%= event.showTimes %>"></b></h4>
                             <div class="details-points">
                                 <% if (event.summary !== null) { %>
                                     <p class="details-description"><%= event.summary %></p>
                                 <% } %>
-                                <b>Starts:</b> <pc-date><%= event.dates.start.getTime() %></pc-date><br>
-                                <b>Ends:</b> <pc-date><%= event.dates.end.getTime() %></pc-date><br>
+                                <%
+                                    let pcDateStartParts = event.dates.start.toUTCString().split(" ");
+                                    let pcDateStartTime = pcDateStartParts[4].split(":");
+
+                                    let pcDateEndParts = event.dates.end.toUTCString().split(" ");
+                                    let pcDateEndTime = pcDateEndParts[4].split(":");
+
+                                    let pcDateStart = pcDateStartParts[0] + " " + pcDateStartParts[2] + " " + pcDateStartParts[1] + " " + pcDateStartParts[3] + (event.showTimes ? ", " + pcDateStartTime[0] + ":" + pcDateStartTime[1] + " UTC" : "");
+                                    let pcDateEnd = pcDateEndParts[0] + " " + pcDateEndParts[2] + " " + pcDateEndParts[1] + " " + pcDateEndParts[3] + (event.showTimes ? ", " + pcDateEndTime[0] + ":" + pcDateEndTime[1] + " UTC" : "");
+                                %>
+                                <b>Starts:</b> <pc-date timestamp="<%= event.dates.start.getTime() %>" show-times="<%= event.showTimes %>"><%= pcDateStart %></pc-date><br>
+                                <b>Ends:</b> <pc-date timestamp="<%= event.dates.end.getTime() %>" show-times="<%= event.showTimes %>"><%= pcDateEnd %></pc-date><br>
                                 <% if ((event.location.openstreetmap !== null) &&
                                         (event.location.openstreetmap.url !== null) &&
                                         event.location.name !== null) { %>
@@ -203,13 +282,6 @@
                                         <a title="Visit website" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= event.website %>" type="button" class="btn btn-primary">
                                             <img class="social-icon website-icon" src="/assets/social/website.png" alt="Website">
                                             <span class="website-label">Website</span>
-                                        </a>
-                                    <% } %>
-                                    <% if (event.ponytown !== 0 &&
-                                            event.dates.start.getTime() <= Date.now() &&
-                                            event.dates.end.getTime() > Date.now()) { %>
-                                        <a title="Join Pony Town server" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= ["https://event.pony.town", "https://eventblue.pony.town", "https://eventgreen.pony.town"][event.ponytown-1] %>" type="button" class="btn btn-primary btn-with-icon">
-                                            <img class="social-icon" src="/assets/social/ponytown.png" alt="Pony Town">
                                         </a>
                                     <% } %>
                                     <% for (const social in event.socials) {
@@ -246,14 +318,14 @@
 
                                         if (event.socials[social].url.startsWith("https://")) socialLink = event.socials[social].url;
                                     %>
-                                    <a title="<%= socialName %>" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= socialLink %>" type="button" class="btn <%= event.socials[social].live && (event.dates.start.getTime() <= new Date().getTime() && new Date().getTime() < event.dates.end.getTime()) ? "btn-outline-danger" : "btn-outline-primary" %> btn-with-icon">
-                                        <img class="social-icon<%= event.socials[social].live && (event.dates.start.getTime() <= new Date().getTime() && new Date().getTime() < event.dates.end.getTime()) ? " social-icon-highlight" : "" %>" src="/assets/social/<%= social %>.png" alt="<%= socialName %>">
+                                    <a title="<%= socialName %>" data-bs-toggle="tooltip" role="button" tabindex="0" target="_blank" href="<%= socialLink %>" type="button" class="btn btn-outline-primary btn-with-icon">
+                                        <img class="social-icon" src="/assets/social/<%= social %>.png" alt="<%= socialName %>">
                                     </a>
                                     <% } %>
                                 </div>
                             </div>
                             <button type="button" class="btn btn-outline-secondary btn-with-icon" onclick="shareEvent('<%= event.id %>')" style="display: flex; float: right;">
-                                <img class="share-icon" src="/assets/img/share.svg">
+                                <img alt="Share" class="share-icon" src="/assets/img/share.svg">
                             </button>
                         </div>
                     </div>
@@ -265,7 +337,8 @@
                         eventBreaks["<%= event.id %>"].push({
                             "start": "<%= eventBreak.start.getTime() %>",
                             "end": "<%= eventBreak.end.getTime() %>"
-                        });<% }); %>
+                        });
+                        <% }); %>
                     </script>
                 </details>
             <% }); %>
@@ -291,7 +364,8 @@
 
 <footer>
     <div class="container text-muted">
-        © 2022-<%= new Date().getFullYear() %> <a href="https://equestria.dev" class="text-muted">Equestria.dev Developers</a>
+        <% /* © 2022- <\%= new Date().getFullYear() %\> <a href="https://equestria.horse" class="text-muted">Cloudburst (Leah)</a> */ %>
+        © 2024 Cloudburst (Leah) <span title="Ponycon Countdown is no longer owned by Equestria.dev and is now owned by Cloudburst (Leah) individually." data-bs-toggle="tooltip">?</span>
     </div>
 </footer>
 

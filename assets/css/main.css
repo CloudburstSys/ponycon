@@ -170,16 +170,17 @@ footer {
 }
 
 @media (max-width: 991px) {
-    .pt-banner-buttons {
+    .live-banner-buttons {
         float: none!important;
         display: flex;
         margin-left: auto;
         margin-right: auto;
         flex-direction: row;
         justify-content: center;
+        align-items: center;
     }
 
-    .pt-banner-button-primary, .pt-banner-button-secondary {
+    .live-banner-button-primary, .live-banner-button-secondary {
         margin: 2px;
     }
 }
@@ -230,10 +231,10 @@ footer {
     display: inline-block;
 }
 
-.pt-banner {
-    --bs-alert-color: #985e08;
-    --bs-alert-bg: #ffeccf;
-    --bs-alert-border-color: #fee0b6;
+.live-banner {
+    --bs-alert-color: #00751f;
+    --bs-alert-bg: #bfffd0;
+    --bs-alert-border-color: #008323;
     --bs-alert-padding-x: 1rem;
     --bs-alert-padding-y: 1rem;
     --bs-alert-margin-bottom: 1rem;
@@ -248,28 +249,45 @@ footer {
     border-radius: var(--bs-alert-border-radius);
 }
 
-.pt-banner-buttons {
+.live-banner-buttons {
     float: right;
 }
 
-.pt-banner-button-primary {
-    --bs-btn-color: #fff;
-    --bs-btn-bg: #fd9c0d;
-    --bs-btn-border-color: #fd9c0d;
+.live-banner-button-primary {
+    --bs-btn-color: #000;
+    --bs-btn-bg: #89d29d;
+    --bs-btn-border-color: #42704f;
     --bs-btn-hover-color: #fff;
-    --bs-btn-hover-bg: #d7840b;
-    --bs-btn-hover-border-color: #ca7c0a;
+    --bs-btn-hover-bg: #73b785;
+    --bs-btn-hover-border-color: #2e5037;
     --bs-btn-focus-shadow-rgb: 49,132,253;
-    --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: #ca7c0a;
-    --bs-btn-active-border-color: #be750a;
+    --bs-btn-active-color: #000;
+    --bs-btn-active-bg: #a1dbb1;
+    --bs-btn-active-border-color: #629671;
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --bs-btn-disabled-color: #fff;
-    --bs-btn-disabled-bg: #fd9c0d;
-    --bs-btn-disabled-border-color: #fd9c0d;
+    --bs-btn-disabled-color: #000;
+    --bs-btn-disabled-bg: #c3f2d0;
+    --bs-btn-disabled-border-color: #667e6d;
 }
 
-.pt-banner-button-secondary {
+.live-banner-button-ponytown {
+    --bs-btn-color: #ca7e4e;
+    --bs-btn-border-color: #ca7e4e;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #ca7e4e;
+    --bs-btn-hover-border-color: #ca7e4e;
+    --bs-btn-focus-shadow-rgb: 202, 126, 78;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #ca7e4e;
+    --bs-btn-active-border-color: #ca7e4e;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+    --bs-btn-disabled-color: #ca7e4e;
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: #ca7e4e;
+    --bs-gradient: none;
+}
+
+.live-banner-button-secondary {
     --bs-btn-color: #7d746c;
     --bs-btn-border-color: #7d746c;
     --bs-btn-hover-color: #fff;

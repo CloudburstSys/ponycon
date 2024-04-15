@@ -26,14 +26,10 @@ if (!$isLoggedIn) {
 }
 
 $eventXml = simplexml_load_string(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/../data/events.xml"), "SimpleXMLElement", LIBXML_NOCDATA);
-$scheduleXml = simplexml_load_string(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/../data/schedule.xml"), "SimpleXMLElement", LIBXML_NOCDATA);
 $eventJson = json_encode($eventXml);
-$scheduleJson = json_encode($scheduleXml);
 $eventArray = json_decode($eventJson,true);
-$scheduleArray = json_decode($scheduleJson, true);
 
 $list = [];
-$schedule = [];
 
 if (isset($eventArray["event"])) {
     if (isset($eventArray["event"]["name"])) {
@@ -45,6 +41,7 @@ if (isset($eventArray["event"])) {
     foreach ($events as $event) {
         $list[$event["@attributes"]["id"]] = [
             "hidden" => $event["@attributes"]["hidden"] == "true",
+            "show_times" => $event["@attributes"]["showtimes"] == "true",
             "type" => $event["@attributes"]["type"],
             "name" => trim($event["name"] ?? "<untitled>"),
             "summary" => trim($event["summary"] ?? "") === "" ? null : trim($event["summary"] ?? ""),
@@ -66,7 +63,11 @@ if (isset($eventArray["event"])) {
             "irl" => isset($event["irl"]),
             "online" => isset($event["online"]),
             "website" => isset($event["website"]) ? $event["website"] : null,
-            "ponytown" => isset($event["ponytown"]) ? $event["ponytown"]["@attributes"]["server"] : null,
+            "streaming" => [
+                "enabled" => isset($event["streaming"]["@attributes"]["enabled"]) ? $event["streaming"]["@attributes"]["enabled"] : null,
+                "stream" => isset($event["streaming"]["stream"]) ? $event["streaming"]["stream"] : null,
+                "ponyTown" => isset($event["streaming"]["ponyTown"]) ? $event["streaming"]["ponyTown"] : null,
+            ],
             "date" => [
                 "start" => strtotime($event["start"] ?? "0") === 0 ? null : strtotime($event["start"] ?? "0"),
                 "end" => strtotime($event["end"] ?? "0") === 0 ? null : strtotime($event["end"] ?? "0"),
@@ -108,7 +109,7 @@ function export_event_list() {
     $str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<events>\n";
 
     foreach ($list as $id => $event) {
-        $str .= "    <event id=\"" . str_replace("\"", "\\\"", $id) . "\" type=\"" . str_replace("\"", "\\\"", $event["type"]) . "\" hidden=\"" . (isset($event["hidden"]) && $event["hidden"] ? "true" : "false") . "\">\n";
+        $str .= "    <event id=\"" . str_replace("\"", "\\\"", $id) . "\" type=\"" . str_replace("\"", "\\\"", $event["type"]) . "\" hidden=\"" . (isset($event["hidden"]) && $event["hidden"] ? "true" : "false") . "\" showtimes=\"" . (isset($event["show_times"]) && $event["show_times"] ? "true" : "false") . "\">\n";
 
         if (isset($event["name"])) $str .= "        <name>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["name"])) . "</name>\n";
         if (isset($event["summary"])) $str .= "        <summary>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["summary"])) . "</summary>\n";
@@ -175,7 +176,17 @@ function export_event_list() {
         $str .= "        </socials>\n";
 
         if (isset($event["website"])) $str .= "        <website>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["website"])) . "</website>\n";
-        if (isset($event["ponytown"])) $str .= "        <ponytown server=\"" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["ponytown"])) . "\"/>\n";
+
+        if (!isset($event["streaming"]["ponyStream"]) and !isset($event["streaming"]["ponyTown"])) {
+            $str .= "        <streaming enabled=\"" . ($event["streaming"]["enabled"] ? "true" : "false") . "\" />\n";
+        } else {
+            $str .= "        <streaming enabled=\"" . ($event["streaming"]["enabled"] ? "true" : "false") . "\">\n";
+            if (isset($event["streaming"]["stream"])) $str .= "            <stream>" . $event["streaming"]["stream"] . "</stream>\n";
+            if (isset($event["streaming"]["ponyTown"])) $str .= "            <ponyTown>" . $event["streaming"]["ponyTown"] . "</ponyTown>\n";
+            $str .= "        </streaming>\n";
+        }
+
+        //if (isset($event["ponytown"])) $str .= "        <ponytown server=\"" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["ponytown"])) . "\"/>\n";
 
         $str .= "    </event>\n";
     }

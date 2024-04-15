@@ -1,7 +1,6 @@
 import {readFileSync, writeFileSync, watchFile} from "fs";
 import xml from "xml-js";
-import Event, {EventBreak, EventEnvironment, EventPonytown, EventType} from "../Types/Event";
-import Schedule, {RoomColor, ScheduleEvent, ScheduleRoom} from "../Types/Schedule";
+import Event, {EventEnvironment, EventPonytown, EventType} from "../Types/Event";
 
 export default class XML {
     private supportedSocials: string[] = [
@@ -20,21 +19,14 @@ export default class XML {
     }
 
     public events: Event[];
-    public schedule: Schedule;
     public rawEventData: any;
-    public rawScheduleData: any;
 
     constructor() {
-        this._parseEvents();
-        this._parseSchedule();
+        this._parse();
         this._removeOldEvents();
 
-        watchFile("../data/events.xml", (current, previous) => {
-            this._parseEvents();
-        });
-
-        watchFile("../data/schedule.xml", (current, previous) => {
-            this._parseSchedule();
+        watchFile("../data/events.xml", () => {
+            this._parse();
         });
 
         setInterval(() => {
@@ -65,10 +57,15 @@ export default class XML {
 
         //this.events = newEvents;
         let xmlString = xml.json2xml(JSON.stringify(this.rawEventData, null, 4), { compact: false, spaces: 4 });
-        writeFileSync("../data/events.xml", xmlString);
+
+        try {
+            writeFileSync("../data/events.xml", xmlString);
+        } catch (err: any) {
+            console.warn("Encountered error while saving events.xml: " + err.message);
+        }
     }
 
-    _parseEvents() {
+    _parse() {
         this.events = [];
         
         let xmlString = readFileSync("../data/events.xml").toString();
@@ -87,10 +84,12 @@ export default class XML {
             if (element.attributes.id === undefined) return;
             if (element.attributes.type === undefined) return;
             if (element.attributes.hidden === "true") return;
+            if (element.attributes.showtimes === undefined) return;
 
             if (element.elements === undefined) return;
 
             let id = element.attributes.id;
+            let showTimes = element.attributes.showtimes === "true";
             let type;
 
             switch (element.attributes.type) {
@@ -109,6 +108,7 @@ export default class XML {
             }
 
             let event = new Event(id, type);
+            event.showTimes = showTimes;
 
             element.elements.forEach(element2 => {
                 switch (element2.name) {
@@ -295,11 +295,27 @@ export default class XML {
                         if (element2.elements[0].text === undefined) return;
                         event.website = element2.elements[0].text.trim();
                         break;
-                    case "ponytown":
+                    case "streaming":
                         if (element2.attributes === null) return;
-                        if (!this.ponytownEventServers.hasOwnProperty(element2.attributes.server)) return;
 
-                        event.ponytown = this.ponytownEventServers[element2.attributes.server];
+                        event.streaming.enabled = element2.attributes.enabled === "true";
+                        
+                        if (element2.elements !== undefined) {
+                            element2.elements.forEach(element3 => {
+                                if (element3.elements === undefined) return;
+                                if (element3.elements[0].text === undefined) return;
+                                
+                                switch (element3.name) {
+                                    case "stream":
+                                        event.streaming.stream = element3.elements[0].text;
+                                        break;
+                                    case "ponyTown":
+                                        if (!this.ponytownEventServers[element3.elements[0].text]) return;
+                                        event.streaming.ponyTown = this.ponytownEventServers[element3.elements[0].text];
+                                        break;
+                                }
+                            });
+                        }
                         break;
                     default:
                         // just ignore it honestly
@@ -308,88 +324,6 @@ export default class XML {
             });
 
             this.events.push(event);
-        });
-    }
-
-    _parseSchedule() {
-        this.schedule = new Schedule(false, "", {}, []);
-
-        let xmlString = readFileSync("../data/schedule.xml").toString();
-
-        let xmlData = JSON.parse(xml.xml2json(xmlString, {compact: false}));
-
-        this.rawScheduleData = xmlData;
-
-        if (xmlData.elements === null) return;
-        if (xmlData.elements[0].name !== "schedule") return;
-        if (xmlData.elements[0].elements === undefined) return;
-
-        console.log(JSON.stringify(xmlData));
-
-        xmlData.elements[0].elements.forEach(element => {
-            switch (element.name) {
-                case "enabled":
-                    if (element.elements === undefined) return;
-                    if (element.elements[0].text === undefined) return;
-                    this.schedule.enabled = element.elements[0].text.trim() === "true";
-                    break;
-                case "name":
-                    if (element.elements === undefined) return;
-                    if (element.elements[0].text === undefined) return;
-                    this.schedule.name = element.elements[0].text.trim();
-                    break;
-                case "description":
-                    if (element.elements === undefined) return;
-
-                    this.schedule.description = {};
-
-                    element.elements.forEach(text => {
-                        if (text.elements === undefined) return;
-                        if (text.elements[0].text === undefined) return;
-
-                        this.schedule.description[text.name] = text.elements[0].text.trim();
-                    });
-                    break;
-                case "events":
-                    // TODO: Schedule processing.
-                    if (element.elements === undefined) return;
-
-                    element.elements.forEach(rooms => {
-                        if (rooms.elements === undefined) return;
-                        if (rooms.name !== "room") return;
-                        if (rooms.attributes === undefined) return;
-                        if (rooms.attributes.name === undefined) return;
-                        if (rooms.attributes.color === undefined) return;
-
-                        let room = new ScheduleRoom(rooms.attributes.name, RoomColor.fromHex(rooms.attributes.color), []);
-                        let roomName = room.name;
-
-                        this.schedule.addRoom(room);
-
-                        rooms.elements.forEach(events => {
-                            if (events.elements === undefined) return;
-                            if (events.name !== "event") return;
-                            if (events.attributes === undefined) return;
-                            if (events.attributes.start === undefined) return;
-                            if (events.attributes.end === undefined) return;
-
-                            let event: ScheduleEvent = {
-                                start: new Date(events.attributes.start.trim()),
-                                end: new Date(events.attributes.end.trim()),
-                                text: {}
-                            }
-
-                            events.elements.forEach(text => {
-                                if (text.elements === undefined) return;
-                                if (text.elements[0].text === undefined) return;
-
-                                event.text[text.name] = text.elements[0].text.trim();
-                            });
-
-                            this.schedule.addEvent(roomName, event);
-                        });
-                    });
-            }
         });
     }
 }

@@ -80,8 +80,7 @@
                                 <input name="location_url[openstreetmap]" id="location-openstreetmap-url" type="hidden" value="<?= isset($_GET["i"]) && isset($event["location"]["openstreetmap"]) ? $event["location"]["openstreetmap"]["url"] : "" ?>">
                                 <td>
                                     <label>
-                                        <input type="radio" class="form-check-input" name="location-preview" value="openstreetmap" id="location-openstreetmap-preview" checked>
-                                        Preview
+                                        <button type="button" class="btn btn-outline-secondary" onclick="refreshMap('openstreetmap')">Refresh</button>
                                     </label>
                                 </td>
                             </tr>
@@ -245,6 +244,10 @@
                             <label>
                                 End:
                                 <input class="form-control" type="datetime-local" name="date[end]" id="date2" required value="<?= isset($_GET["i"]) ? substr(date("c", $event["date"]["end"]), 0, 16) : "" ?>">
+                            </label>
+                            <label>
+                                <input type="checkbox" class="form-check-input" name="show_times" <?= isset($_GET["i"]) && isset($event["show_times"]) && $event["show_times"] ? "checked" : "" ?>>
+                                Show times
                             </label>
                         </p>
                         Starts <span id="time-start">-</span>, for <span id="time-duration">-</span>
@@ -465,16 +468,36 @@
                 <tr>
                     <td style="width: 15%; font-weight: bold; text-align: right; padding-right: 10px;">
                         <div style="height: 100%; display: flex; align-items: center; justify-content: right;">
-                            Pony Town server:
+                            Streaming:
                         </div>
                     </td>
                     <td>
-                        <select name="ponytown" required class="form-select">
-                            <option value="none" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) ? "" : "selected") : "" ?>>[None]</option>
-                            <option value="main" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) && $event["ponytown"] === "main" ? "selected" : "") : "" ?>>event.pony.town</option>
-                            <option value="blue" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) && $event["ponytown"] === "blue" ? "selected" : "") : "" ?>>eventblue.pony.town</option>
-                            <option value="green" <?= isset($_GET["i"]) ? (isset($event["ponytown"]) && $event["ponytown"] === "green" ? "selected" : "") : "" ?>>eventgreen.pony.town</option>
-                        </select>
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="text-align: right; padding-right: 10px; width: 15%;">Streaming:</td>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" name="streaming[enabled]" <?= isset($_GET["i"]) && $event["streaming"]["enabled"] ? "checked" : "" ?>>
+                                        Enabled
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding-right: 10px; width: 15%;">Stream URL:</td>
+                                <td><input class="form-control" type="text" name="streaming[stream]" value="<?= isset($_GET["i"]) ? (isset($event["streaming"]["stream"]) ? $event["streaming"]["stream"] : "") : "" ?>"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding-right: 10px; width: 15%;">PonyTown:</td>
+                                <td>
+                                    <select name="streaming[ponyTown]" required class="form-select">
+                                        <option value="none" <?= isset($_GET["i"]) ? (isset($event["streaming"]["ponyTown"]) ? "" : "selected") : "" ?>>[None]</option>
+                                        <option value="main" <?= isset($_GET["i"]) ? (isset($event["streaming"]["ponyTown"]) && $event["streaming"]["ponyTown"] === "main" ? "selected" : "") : "" ?>>event.pony.town</option>
+                                        <option value="blue" <?= isset($_GET["i"]) ? (isset($event["streaming"]["ponyTown"]) && $event["streaming"]["ponyTown"] === "blue" ? "selected" : "") : "" ?>>eventblue.pony.town</option>
+                                        <option value="green" <?= isset($_GET["i"]) ? (isset($event["streaming"]["ponyTown"]) && $event["streaming"]["ponyTown"] === "green" ? "selected" : "") : "" ?>>eventgreen.pony.town</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
                 <tr>
