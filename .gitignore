@@ -3,3 +3,4 @@ data
 admin/private/oauth.json
 admin/private/tokens
 assets/events/*
+/node_modules/
