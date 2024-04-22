@@ -7,9 +7,10 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Admin portal</title>
+    <title>Admin - PonyCon Countdown</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="shortcut icon" href="logo.svg" type="image/svg">
 </head>
 <body>
     <?php if (isset($_GET["i"]) || isset($_GET["n"]) || isset ($_GET["d"])): ?>
@@ -238,11 +239,11 @@
                     <td>
                         <p>
                             <label>
-                                Start:
+                                Start: <span id="time-start-warning" data-bs-toggle="tooltip" data-bs-html="true" title="<b>Unusual start time</b><br>This event starts on an unusual day. Is this date correct?" class="tooltip-nohelp" style="position: relative; top:-2px; cursor: pointer; display: none;"><span><img src="warning.svg" alt="Warning"/></span></span>
                                 <input class="form-control" type="datetime-local" name="date[start]" id="date1" required value="<?= isset($_GET["i"]) ? substr(date("c", $event["date"]["start"]), 0, 16) : "" ?>">
                             </label>
                             <label>
-                                End:
+                                End: <span id="time-end-warning" data-bs-toggle="tooltip" data-bs-html="true" title="<b>Unusual end time</b><br>This event ends on an unusual day. Is this date correct?" class="tooltip-nohelp" style="position: relative; top:-2px; cursor: pointer; display: none;"><span><img src="warning.svg" alt="Warning"/></span></span>
                                 <input class="form-control" type="datetime-local" name="date[end]" id="date2" required value="<?= isset($_GET["i"]) ? substr(date("c", $event["date"]["end"]), 0, 16) : "" ?>">
                             </label>
                             <label>
@@ -250,7 +251,7 @@
                                 Show times
                             </label>
                         </p>
-                        Starts <span id="time-start">-</span>, for <span id="time-duration">-</span>
+                        Starts <span id="time-start">-</span>, for <span id="time-duration">-</span><span id="time-duration-warning" data-bs-toggle="tooltip" data-bs-html="true" title="<b>Long event time</b><br>This event lasts longer than usual. Are the dates correct?" class="tooltip-nohelp" style="position: relative; top:-2px; cursor: pointer; display: none;"><span><img src="warning.svg" alt="Warning"/></span></span>
                         <script>
                             function timeAgo(time) {
                                 if (!isNaN(parseInt(time))) {
@@ -317,10 +318,32 @@
 
                                 period = periods[j];
 
+                                if (periods.indexOf(period) >= 4) {
+                                    document.getElementById("time-duration-warning").style = "position: relative; top:-2px; cursor: pointer;";
+                                } else {
+                                    document.getElementById("time-duration-warning").style = "position: relative; top:-2px; cursor: pointer; display: none;";
+                                }
+
                                 return `${difference} ${period}${difference > 1 ? "s" : ""}`;
                             }
 
                             function updateDate() {
+                                if (document.getElementById("date1").value !== "") {
+                                    if (![5, 6, 0].includes(new Date(new Date(document.getElementById("date1").value)).getDay())) {
+                                        document.getElementById("time-start-warning").style = "position: relative; top:-2px; cursor: pointer;";
+                                    } else {
+                                        document.getElementById("time-start-warning").style = "position: relative; top:-2px; cursor: pointer; display: none;";
+                                    }
+                                }
+
+                                if (document.getElementById("date2").value !== "") {
+                                    if (![6, 0, 1].includes(new Date(new Date(document.getElementById("date2").value)).getDay())) {
+                                        document.getElementById("time-end-warning").style = "position: relative; top:-2px; cursor: pointer;";
+                                    } else {
+                                        document.getElementById("time-end-warning").style = "position: relative; top:-2px; cursor: pointer; display: none;";
+                                    }
+                                }
+
                                 if (document.getElementById("date1").value === "" || document.getElementById("date2").value === "") {
                                     document.getElementById("time-start").innerText = "";
                                     document.getElementById("time-duration").innerText = "";
@@ -615,5 +638,11 @@
         <a href="/?n" class="btn btn-primary">Create new</a>
     </div>
     <?php endif; ?>
+    <script>
+        let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        let tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    </script>
 </body>
 </html>
