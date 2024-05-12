@@ -365,7 +365,7 @@
 <footer>
     <div class="container text-muted">
         <% /* © 2022- <\%= new Date().getFullYear() %\> <a href="https://equestria.horse" class="text-muted">Cloudburst (Leah)</a> */ %>
-        © 2024 Cloudburst (Leah) <span title="Ponycon Countdown is no longer owned by Equestria.dev and is now owned by Cloudburst (Leah) individually." data-bs-toggle="tooltip">?</span>
+        © 2024<%= let copyrightEnd = new Date.getFullYear(); copyrightEnd != "2024" ? `- ${copyrightEnd}` : `` %> <a href="https://conep.one" class="text-muted">Cloudburst (Leah)</a> <span title="Ponycon Countdown is no longer owned by Equestria.dev and is now owned by Cloudburst (Leah) individually." data-bs-toggle="tooltip">?</span>
     </div>
 </footer>
 
