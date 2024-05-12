@@ -1,6 +1,14 @@
 dist
 data
 admin/private/oauth.json
+admin/private/oauth.dev.json
 admin/private/tokens
 assets/events/*
 /node_modules/
+.idea
+.vscode
+admin/.idea
+admin/.vscode
+.DS_Store
+**/.DS_Store
+TODO.md
