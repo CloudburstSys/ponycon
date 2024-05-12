@@ -64,7 +64,7 @@ if (isset($eventArray["event"])) {
             "online" => isset($event["online"]),
             "website" => isset($event["website"]) ? $event["website"] : null,
             "streaming" => [
-                "enabled" => isset($event["streaming"]["@attributes"]["enabled"]) ? $event["streaming"]["@attributes"]["enabled"] : null,
+                "enabled" => isset($event["streaming"]["@attributes"]["enabled"]) ? $event["streaming"]["@attributes"]["enabled"] == "true" : false,
                 "stream" => isset($event["streaming"]["stream"]) ? $event["streaming"]["stream"] : null,
                 "ponyTown" => isset($event["streaming"]["ponyTown"]) ? $event["streaming"]["ponyTown"] : null,
             ],
@@ -178,9 +178,9 @@ function export_event_list() {
         if (isset($event["website"])) $str .= "        <website>" . str_replace("<", "&lt;", str_replace(">", "&gt;", $event["website"])) . "</website>\n";
 
         if (!isset($event["streaming"]["ponyStream"]) and !isset($event["streaming"]["ponyTown"])) {
-            $str .= "        <streaming enabled=\"" . ($event["streaming"]["enabled"] ? "true" : "false") . "\" />\n";
+            $str .= "        <streaming enabled=\"" . ($event["streaming"]["enabled"] == true ? "true" : "false") . "\" />\n";
         } else {
-            $str .= "        <streaming enabled=\"" . ($event["streaming"]["enabled"] ? "true" : "false") . "\">\n";
+            $str .= "        <streaming enabled=\"" . ($event["streaming"]["enabled"] == true ? "true" : "false") . "\">\n";
             if (isset($event["streaming"]["stream"])) $str .= "            <stream>" . $event["streaming"]["stream"] . "</stream>\n";
             if (isset($event["streaming"]["ponyTown"])) $str .= "            <ponyTown>" . $event["streaming"]["ponyTown"] . "</ponyTown>\n";
             $str .= "        </streaming>\n";
