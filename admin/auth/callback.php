@@ -6,9 +6,13 @@ if (!isset($_GET['code'])) {
     die();
 }
 
-$appdata = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/private/oauth.json"), true);
+if ($_SERVER['SERVER_PORT'] == 3001) {
+    $appdata = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/private/oauth.dev.json"), true);
+} else {
+    $appdata = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/private/oauth.json"), true);
+}
 
-$crl = curl_init('https://account.equestria.dev/hub/api/rest/oauth2/token');
+$crl = curl_init('https://hub.conep.one/hub/api/rest/oauth2/token');
 curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($crl, CURLINFO_HEADER_OUT, true);
 curl_setopt($crl, CURLOPT_POST, true);
@@ -17,8 +21,8 @@ curl_setopt($crl, CURLOPT_HTTPHEADER, [
     "Content-Type: application/x-www-form-urlencoded",
     "Accept: application/json"
 ]);
-if ($_SERVER['SERVER_PORT'] == 8000) {
-    curl_setopt($crl, CURLOPT_POSTFIELDS, "grant_type=authorization_code&redirect_uri=" . urlencode("http://localhost:8000/auth/callback.php") . "&code=" . $_GET['code']);
+if ($_SERVER['SERVER_PORT'] == 3001) {
+    curl_setopt($crl, CURLOPT_POSTFIELDS, "grant_type=authorization_code&redirect_uri=" . urlencode("http://localhost:3001/auth/callback.php") . "&code=" . $_GET['code']);
 } else {
     curl_setopt($crl, CURLOPT_POSTFIELDS, "grant_type=authorization_code&redirect_uri=" . urlencode("https://" . $_SERVER['HTTP_HOST'] . "/auth/callback.php") . "&code=" . $_GET['code']);
 }
@@ -29,7 +33,7 @@ $result = json_decode($result, true);
 curl_close($crl);
 
 if (isset($result["access_token"])) {
-    $crl = curl_init('https://account.equestria.dev/hub/api/rest/users/me');
+    $crl = curl_init('https://hub.conep.one/hub/api/rest/users/me');
     curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($crl, CURLINFO_HEADER_OUT, true);
     curl_setopt($crl, CURLOPT_HTTPHEADER, [
